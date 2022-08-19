@@ -21,6 +21,7 @@ import rol from './rol';
 import accountSettings from './accountSettings';
 import cloneprocess from './cloneprocess';
 import stateszonesfarms from './stateszonesfarms';
+import keyapiaccess from './keyapiaccess';
 
 /** init models */
 export const Farm = model('Farm', farm);
@@ -62,3 +63,5 @@ export const PromMinMax = model('PromMinMax', promMinMax);
 export const CloneProcess = model('CloneProcess', cloneprocess);
 //
 export const StatesZonesFarms = model('StatesZonesFarms', stateszonesfarms);
+//
+export const KeyApiAccess = model('KeyApiAccess', keyapiaccess);
