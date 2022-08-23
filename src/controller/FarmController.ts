@@ -8,26 +8,65 @@ import * as intf from '../db/interfaces';
 import * as Msg from '../hooks/messages';
 import { Request, Response, NextFunction } from 'express';
 
+const options = {
+	_id: 0,
+	id: 1,
+	name: 1,
+	description: 1,
+	latitude: 1,
+	longitude: 1,
+	id_wiseconn: 1,
+	postalAddress: 1,
+	account: {
+		id: 1,
+		name: 1
+	},
+	timeZone: 1,
+	timeZoneName: 1,
+	webhook: 1,
+	metadata: 1
+};
+
+const optionsZone = {
+	_id: 0,
+	id: 1,
+	name: 1,
+	description: 1,
+	latitude: 1,
+	longitude: 1,
+	type: 1,
+	farm: 1,
+	pump_system: 1,
+	kc: 1,
+	theoreticalFlow: 1,
+	unitTheoreticalFlow: 1,
+	efficiency: 1,	
+	humidity_retention: 1,
+	max: 1,
+	min: 1,
+	critical_point1: 1,
+	critical_point2: 1,
+	BFPressureId: 1,
+	AFPressureId: 1,
+	onlyMonitoring: 1,
+	area: 1,
+	areaUnit: 1,
+	metadata: 1,
+	allowPumpSelection: 1,
+	predefinedPumps: 1,
+	polygon: {
+		path: 1,
+		bounds: 1
+	}
+};
+
 // obtain all farms
 export const getFarms = async (req: Request<intf.params>, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		// query
 		const info: intf.Farm[] = await Farm.find(
 			{},
-			{
-				_id: 1,
-				name: 1,
-				description: 1,
-				latitude: 1,
-				longitude: 1,
-				id_wiseconn: 1,
-				postalAddress: 1,
-				account: 1,
-				timeZone: 1,
-				timeZoneName: 1,
-				webhook: 1,
-				active: 1
-			}
+			options
 		).lean();
 		// response
 		res.status(200).json({ status: true, message: Msg.Farm().getAll, data: info });
@@ -45,20 +84,7 @@ export const getFarmById = async (req: Request<intf.params>, res: Response, next
 		// query
 		const info: any = await Farm.findOne(
 			{ id_wiseconn },
-			{
-				_id: 1,
-				name: 1,
-				description: 1,
-				latitude: 1,
-				longitude: 1,
-				id_wiseconn: 1,
-				postalAddress: 1,
-				account: 1,
-				timeZone: 1,
-				timeZoneName: 1,
-				webhook: 1,
-				active: 1
-			}
+			options
 		);
 		// response
 		res.status(200).json({ status: true, message: Msg.Farm(id_wiseconn).get, data: info });
@@ -82,51 +108,7 @@ export const getZonesByIdFarm = async (req: Request<intf.params>, res: Response,
 		// query for get zones
 		const zones: any[] = await Zone.find(
 			{ farm: _id },
-			{
-				_id: 1,
-				name: 1,
-				description: 1,
-				latitude: 1,
-				longitude: 1,
-				kc: 1,
-				theoreticalFlow: 1,
-				unitTheoreticalFlow: 1,
-				efficiency: 1,
-				humidity_retention: 1,
-				max: 1,
-				min: 1,
-				critical_point1: 1,
-				critical_point2: 1,
-				crops: 1,
-				metadata: 1,
-				allowPumpSelection: 1,
-				types: 1,
-				pump_system: 1,
-				farm: 1,
-				id_wiseconn: 1,
-				plantation_select_year: 1,
-				variety: 1,
-				species: 1,
-				surface: 1,
-				emitter_flow: 1,
-				distance_between_emitters: 1,
-				plantation_frame: 1,
-				probe_type: 1,
-				graph1_url: 1,
-				graph2_url: 1,
-				image_url_irrimax: 1,
-				title_second_graph: 1,
-				installation_date: 1,
-				number_roots: 1,
-				plant: 1,
-				probe_plant_distance: 1,
-				sprinkler_probe_distance: 1,
-				installation_typeorigen_instalation: 1,
-				initTime_instalation: 1,
-				endTime_instalation: 1,
-				progresssoil_type: 1,
-				polygon: 1
-			}
+			optionsZone
 		).lean();
 
 		res.status(200).json({ message: Msg.Zone(id_wiseconn, 'farm').getBy, data: zones });

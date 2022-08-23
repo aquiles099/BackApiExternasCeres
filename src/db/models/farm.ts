@@ -4,6 +4,7 @@ const { ObjectId, String, Boolean, Number } = Schema.Types;
 
 const schema = new Schema(
 	{
+		id: { type: String, required: false, default: null },
 		name: { type: String, required: false, default: null },
 		description: { type: String, required: false, default: null },
 		latitude: { type: Number, required: false, default: null },
@@ -63,6 +64,7 @@ const schema = new Schema(
 		zone: { type: String, required: false, default: null },
 		position: { type: String, required: false, default: null },
 		id_user: { type: ObjectId, ref: 'User', required: false, default: null },
+		metadata: { type: String, required: false, default: null },
 	},
 	{
 		versionKey: false,

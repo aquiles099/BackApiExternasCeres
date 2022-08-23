@@ -123,34 +123,41 @@ export interface Zone extends db {
 	pump_system?: string;
 	farm?: string;
 	id_wiseconn?: string;
-	plantation_select_year?: String;
-	variety?: String;
-	species?: String;
+	plantation_select_year?: string;
+	variety?: string;
+	species?: string;
 	surface: string;
 	emitter_flow: string;
 	distance_between_emitters: string;
 	plantation_frame: string;
 	probe_type: string;
-	graph1_url?: String;
-	graph2_url?: String;
-	title_second_graph?: String;
-	installation_date?: String;
-	number_roots?: String;
-	plant?: String;
-	probe_plant_distance?: String;
-	sprinkler_probe_distance?: String;
-	installation_typeorigen_instalation?: String;
-	initTime_instalation?: String;
-	endTime_instalation?: String;
-	progresssoil_type?: String;
+	graph1_url?: string;
+	graph2_url?: string;
+	title_second_graph?: string;
+	installation_date?: string;
+	number_roots?: string;
+	plant?: string;
+	probe_plant_distance?: string;
+	sprinkler_probe_distance?: string;
+	installation_typeorigen_instalation?: string;
+	initTime_instalation?: string;
+	endTime_instalation?: string;
+	progresssoil_type?: string;
 	imgs?: string[];
 	alertas: Alerta[];
 	active?: boolean;
 	image_url_irrimax?: string;
-	type_probe: string;
-	duty_manager_probe: string;
-	enabled: boolean;
-	comments: Comments[];
+	type_probe?: string;
+	duty_manager_probe?: string;
+	enabled?: boolean;
+	comments?: Comments[];
+	id?: string;
+	BFPressureId?: string;
+	AFPressureId?: string;
+	onlyMonitoring?: boolean;
+	area?: number;
+	areaUnit?: string;
+	predefinedPumps: string[];
 }
 //
 export interface Farm extends db {
@@ -188,6 +195,8 @@ export interface Farm extends db {
 	zone?: string;
 	position?: string;
 	id_user?: any;
+	id?: string;
+	metadata?: string;
 }
 //
 export interface Measure extends db {
@@ -207,6 +216,7 @@ export interface Measure extends db {
 	zone?: String;
 	id_wiseconn?: String;
 	varDerived?: VarDerivateSector;
+	brand?: String;
 }
 //
 export interface GraphMaster extends db {

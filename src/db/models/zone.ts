@@ -5,6 +5,7 @@ const { String, Number, ObjectId, Boolean, Date } = Schema.Types;
 
 const schema = new Schema(
 	{
+		id: { type: String, required: false, default: null },
 		name: { type: String, required: false, default: null },
 		description: { type: String, required: false, default: null },
 		latitude: { type: Number, required: false, default: null },
@@ -137,7 +138,6 @@ const schema = new Schema(
 				required: false,
 			},
 		],
-
 		calicatas: [
 			{
 				date: { type: Date, required: false },
@@ -162,15 +162,10 @@ const schema = new Schema(
 				required: false,
 			},
 		],
-
 		active: { type: Boolean, required: false, default: true },
-
 		pp_equipo: { type: Number, required: false, default: null },
-
 		variedades: { type: String, required: false, default: null },
-
 		cultivo: { type: String, required: false, default: null },
-
 		pdf_informe_riego: [
 			{
 				date_create: { type: Date, required: false },
@@ -191,6 +186,12 @@ const schema = new Schema(
 				required: false,
 			},
 		],
+		BFPressureId: { type: String, required: false, default: null },
+		AFPressureId: { type: String, required: false, default: null },
+		onlyMonitoring: { type: Boolean, required: false, default: true },
+		area: { type: Number, required: false, default: null },
+		areaUnit: { type: String, required: false, default: null },
+		predefinedPumps: [{required: false}],
 	},
 	{
 		versionKey: false,

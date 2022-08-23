@@ -26,6 +26,7 @@ const schema = new Schema(
 		id_wiseconn: { type: String, required: true, unique: true },
 		sensorTypeSector: { type: String, required: false, default: null },
 		active: { type: Boolean, required: false, default: true },
+		brand: { type: String, required: false, default: null },
 	},
 	{
 		versionKey: false,
