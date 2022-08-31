@@ -30,6 +30,7 @@ const options = {
 const optionsZone = {
 	_id: 0,
 	id: 1,
+	id_wiseconn: 1,
 	name: 1,
 	description: 1,
 	latitude: 1,

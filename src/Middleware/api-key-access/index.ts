@@ -8,7 +8,7 @@ import { KeyApiAccess } from '../../db/models';
 export default async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const keyApiAccess = req.query.keyApiAccess;
-
+		console.log(req.query)
 		const today = new Date().toISOString();
 
 		const keyValid: any = await KeyApiAccess.findOne(

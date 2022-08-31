@@ -25,6 +25,8 @@ export const getMeasuresByZone = async (
 
 		const resp: Array<any> = ArrayData.map(async (data: any, i: number) => {
 			const {
+				id,
+				id_wiseconn,
 				node,
 				lastData,
 				lastDataDate,
@@ -50,7 +52,8 @@ export const getMeasuresByZone = async (
 			);
 
 			const obj: any = {
-				id: data.id_wiseconn,
+				id: data.id,
+				id_wiseconn: data.id_wiseconn,
 				farmId: farm,
 				zoneId: zoneData._id,
 				name,
