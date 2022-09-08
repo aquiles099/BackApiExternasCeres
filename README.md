@@ -1,5 +1,7 @@
 ![image info](./logo.png)
 
+##
+
 # API Ceres Externas
 
 El objetivo de este proyecto es tener toda la lógica necesaria de la solución para interactuar con la base de datos NoSQL MongoDB. Además, cualquier regla de negocio debe estar en esta API.
@@ -20,6 +22,9 @@ El proyecto está desarrollado con nodejs (Express, Cors, TypeScript y Mongoose)
 -   mensajes: [messages](./src/hooks/messages/)
 -   seguridad: [middleware](./src/middleware/)
 -   rutas: [routes](./src/routes/admin/)
+	- farms.routes.js
+	- zone.routes.js
+	- measures.routes.js
 -   servicios: [services](./src/services/)
 
 ## Instalación
@@ -47,11 +52,11 @@ Para iniciar el funcionamiento del proyecto api, hacemos lo siguiente:
     npm run serve
     ```
 
+##
+
 # Endpoints
 
-## /routes/farms.routes.js
-
-### /farms?keyApiAccess=
+## /farms?keyApiAccess=
 
 Método que obtiene todas los farms registrados en la plataforma.
 
@@ -89,7 +94,7 @@ keyApiAccess
 }
 ```
 
-### /farm/:id?keyApiAccess=
+## /farm/:id?keyApiAccess=
 
 Método que obtiene un farm por su IdWiseconn.
 
@@ -128,7 +133,7 @@ keyApiAccess
 }
 ```
 
-### /farm/:id/zones?keyApiAccess=
+## /farm/:id/zones?keyApiAccess=
 
 Método que obtiene todas las zones asociadas a un IdWiseconn farm.
 
@@ -182,7 +187,7 @@ keyApiAccess
 }
 ```
 
-### /farm/:id/measures?keyApiAccess=
+## /farm/:id/measures?keyApiAccess=
 
 Método que obtiene todas las measures (sensores) asociadas a un IdWiseconn farm.
 
@@ -226,9 +231,7 @@ keyApiAccess
 ]
 ```
 
-## /routes/zone.routes.js
-
-### /zones/:id/measures?keyApiAccess=
+## /zones/:id/measures?keyApiAccess=
 
 Método que obtiene todas las measures (sensores) asociadas a un IdWiseconn zone.
 
@@ -273,9 +276,7 @@ keyApiAccess
 ]
 ```
 
-## /routes/measures.routes.js
-
-### /measures/:id/data?keyApiAccess=
+## /measures/:id/data?keyApiAccess=
 
 Método que obtiene toda la data de un measure (sensor) por el IdWiseconn.
 
@@ -302,3 +303,5 @@ keyApiAccess
 	}
 ]
 ```
+
+##
