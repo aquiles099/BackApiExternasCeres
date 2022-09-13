@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,15 +11,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMeasuresByFarm = exports.getZonesByIdFarm = exports.getFarmById = exports.getFarms = void 0;
 const models_1 = require("../db/models");
-const Msg = __importStar(require("../hooks/messages"));
+const mongoose = require('mongoose');
 const options = {
-    _id: 0,
-    id: 1,
+    _id: 1,
+    id_wiseconn: 1,
     name: 1,
     description: 1,
     latitude: 1,
     longitude: 1,
-    id_wiseconn: 1,
     postalAddress: 1,
     account: {
         id: 1,
@@ -54,8 +30,7 @@ const options = {
     metadata: 1
 };
 const optionsZone = {
-    _id: 0,
-    id: 1,
+    _id: 1,
     id_wiseconn: 1,
     name: 1,
     description: 1,
@@ -82,7 +57,10 @@ const optionsZone = {
     allowPumpSelection: 1,
     predefinedPumps: 1,
     polygon: {
-        path: 1,
+        path: {
+            lat: 1,
+            lng: 1
+        },
         bounds: 1
     }
 };
@@ -90,9 +68,26 @@ const optionsZone = {
 const getFarms = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // query
-        const info = yield models_1.Farm.find({}, options).lean();
+        const farmData = yield models_1.Farm.find({}, options).lean();
         // response
-        res.status(200).json({ status: true, message: Msg.Farm().getAll, data: info });
+        const resp = farmData.filter((data) => {
+            return {
+                id: data.id_wiseconn,
+                name: data.name,
+                description: data.description,
+                latitude: data.latitude,
+                longitude: data.longitude,
+                postalAddress: data.postalAddress,
+                account: data.account,
+                timeZone: data.timeZone,
+                timeZoneName: data.timeZoneName,
+                webhook: data.webhook,
+                metadata: data.metadata
+            };
+        });
+        const info = yield Promise.all(resp);
+        // response
+        res.status(200).json(info);
     }
     catch (err) {
         // response error
@@ -106,9 +101,20 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         // define vars
         const id_wiseconn = req.params.id;
         // query
-        const info = yield models_1.Farm.findOne({ id_wiseconn }, options);
-        // response
-        res.status(200).json({ status: true, message: Msg.Farm(id_wiseconn).get, data: info });
+        const info = yield models_1.Farm.findOne({ id_wiseconn }, options).lean();
+        res.status(200).json({
+            id: info.id_wiseconn,
+            name: info.name,
+            description: info.description,
+            latitude: info.latitude,
+            longitude: info.longitude,
+            postalAddress: info.postalAddress,
+            account: info.account,
+            timeZone: info.timeZone,
+            timeZoneName: info.timeZoneName,
+            webhook: info.webhook,
+            metadata: info.metadata
+        });
     }
     catch (err) {
         // response error
@@ -120,14 +126,45 @@ exports.getFarmById = getFarmById;
 const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // define vars
-        const id_wiseconn = req.params.id;
-        const farm = yield models_1.Farm.findOne({ id_wiseconn });
+        const farmId = req.params.id;
+        const farm = yield models_1.Farm.findOne({ id_wiseconn: farmId }, { _id: 1 }).lean();
         if (!farm)
-            throw { code: 400, message: 'el farm no existe' };
-        const { _id } = farm;
+            throw { error: 400, message: 'El farm no existe' };
         // query for get zones
-        const zones = yield models_1.Zone.find({ farm: _id }, optionsZone).lean();
-        res.status(200).json({ message: Msg.Zone(id_wiseconn, 'farm').getBy, data: zones });
+        const zones = yield models_1.Zone.find({ farm: farm._id }, optionsZone).lean();
+        const resp = zones.filter((data) => __awaiter(void 0, void 0, void 0, function* () {
+            return {
+                id: data.id_wiseconn,
+                name: data.name,
+                description: data.description,
+                latitude: data.latitude,
+                longitude: data.longitude,
+                type: data.type,
+                farm: farmId,
+                pump_system: data.pump_system,
+                kc: data.kc,
+                theoreticalFlow: data.theoreticalFlow,
+                unitTheoreticalFlow: data.unitTheoreticalFlow,
+                efficiency: data.efficiency,
+                humidity_retention: data.humidity_retention,
+                max: data.max,
+                min: data.min,
+                critical_point1: data.critical_point1,
+                critical_point2: data.critical_point2,
+                BFPressureId: data.BFPressureId,
+                AFPressureId: data.AFPressureId,
+                onlyMonitoring: data.onlyMonitoring,
+                area: data.area,
+                areaUnit: data.areaUnit,
+                metadata: data.metadata,
+                allowPumpSelection: data.allowPumpSelection,
+                predefinedPumps: data.predefinedPumps,
+                polygon: data.polygon
+            };
+        }));
+        const info = yield Promise.all(resp);
+        // response
+        res.status(200).json(info);
     }
     catch (err) {
         // response error
@@ -139,21 +176,29 @@ exports.getZonesByIdFarm = getZonesByIdFarm;
 const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // define vars
-        const id_wiseconn = req.params.id;
-        if (!id_wiseconn)
+        const idFarm = req.params.id;
+        if (!idFarm)
             throw { message: 'el id es requerido', code: 400 };
         // query
-        const farmData = yield models_1.Farm.findOne({ id_wiseconn }, '_id');
+        const farmData = yield models_1.Farm.findOne({ id_wiseconn: idFarm }, { _id: 1 }).lean();
         if (!farmData)
             throw { message: 'el id suministrado noexiste en la db', code: 400 };
-        const ArrayData = yield models_1.Measure.find({ farm: farmData._id });
-        const resp = ArrayData.map((data, i) => __awaiter(void 0, void 0, void 0, function* () {
-            const { node, lastData, lastDataDate, depthUnit, sensorDepth, sensorType, createdAt, soilMostureSensorType, monitoringTime, zone, name, unit, } = data;
-            const physical_connection = yield models_1.PhysicalConnection.findById(data.physical_connection);
-            const obj = {
-                id: data.id_wiseconn,
-                farmId: id_wiseconn,
-                zoneId: zone,
+        const ArrayData = yield models_1.Measure.find({ farm: farmData._id }).lean();
+        const resp = ArrayData.filter((data) => __awaiter(void 0, void 0, void 0, function* () {
+            const { id_wiseconn, lastData, lastDataDate, depthUnit, sensorDepth, sensorType, createdAt, soilMostureSensorType, monitoringTime, name, unit, readily_available_moisture, field_capacity } = data;
+            let zoneId = null;
+            if (data.zone)
+                zoneId = yield models_1.Zone.findOne({ _id: data.zone }, { id_wiseconn: 1, _id: 0 }).lean();
+            const physical_connection = yield models_1.PhysicalConnection.findOne({ measure: data._id }, {
+                _id: 0,
+                expansionPort: 1,
+                expansionBoard: 1,
+                nodePort: 1
+            }).lean();
+            return {
+                id: id_wiseconn,
+                farmId: idFarm,
+                zoneId: zoneId ? zoneId.id_wiseconn : null,
                 name,
                 unit,
                 lastData,
@@ -161,23 +206,20 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                 monitoringTime,
                 sensorDepth,
                 depthUnit,
-                fieldCapacity: data.field_capacity,
-                readilyAvailableMoisture: data.readily_available_moisture,
+                fieldCapacity: field_capacity,
+                readilyAvailableMoisture: readily_available_moisture,
                 sensorType,
-                nodeId: node,
                 readType: '',
                 soilMostureSensorType,
                 createdAt,
-                physicalConnection: physical_connection,
+                physicalConnection: physical_connection
             };
-            return obj;
         }));
         const info = yield Promise.all(resp);
         // response
-        res.status(200).json({ status: true, message: Msg.Farm(id_wiseconn, 'Measures').getBy, data: info });
+        res.status(200).json(info);
     }
     catch (err) {
-        // console view errr
         // response error
         next(err);
     }

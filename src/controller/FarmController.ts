@@ -4,18 +4,17 @@ import {
 	Zone,
 	PhysicalConnection
 } from '../db/models';
-import * as intf from '../db/interfaces';
-import * as Msg from '../hooks/messages';
 import { Request, Response, NextFunction } from 'express';
 
+const mongoose = require('mongoose');
+
 const options = {
-	_id: 0,
-	id: 1,
+	_id: 1,
+	id_wiseconn: 1,
 	name: 1,
 	description: 1,
 	latitude: 1,
 	longitude: 1,
-	id_wiseconn: 1,
 	postalAddress: 1,
 	account: {
 		id: 1,
@@ -28,8 +27,7 @@ const options = {
 };
 
 const optionsZone = {
-	_id: 0,
-	id: 1,
+	_id: 1,
 	id_wiseconn: 1,
 	name: 1,
 	description: 1,
@@ -56,21 +54,42 @@ const optionsZone = {
 	allowPumpSelection: 1,
 	predefinedPumps: 1,
 	polygon: {
-		path: 1,
+		path: {
+			lat: 1,
+			lng: 1
+		},
 		bounds: 1
 	}
 };
 
 // obtain all farms
-export const getFarms = async (req: Request<intf.params>, res: Response, next: NextFunction): Promise<void> => {
+export const getFarms = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		// query
-		const info: intf.Farm[] = await Farm.find(
+		const farmData: any = await Farm.find(
 			{},
 			options
 		).lean();
 		// response
-		res.status(200).json({ status: true, message: Msg.Farm().getAll, data: info });
+		const resp: any = farmData.filter((data:any) => {
+			return {
+				id: data.id_wiseconn,
+				name: data.name,
+				description: data.description,
+				latitude: data.latitude,
+				longitude: data.longitude,
+				postalAddress: data.postalAddress,
+				account: data.account,
+				timeZone: data.timeZone,
+				timeZoneName: data.timeZoneName,
+				webhook: data.webhook,
+				metadata: data.metadata
+			}
+		});
+		const info: any = await Promise.all(resp);
+
+		// response
+		res.status(200).json(info);
 	} catch (err) {
 		// response error
 		next(err);
@@ -78,7 +97,7 @@ export const getFarms = async (req: Request<intf.params>, res: Response, next: N
 };
 
 // obtain farm by idwiseconn
-export const getFarmById = async (req: Request<intf.params>, res: Response, next: NextFunction): Promise<void> => {
+export const getFarmById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		// define vars
 		const id_wiseconn = req.params.id;
@@ -86,9 +105,21 @@ export const getFarmById = async (req: Request<intf.params>, res: Response, next
 		const info: any = await Farm.findOne(
 			{ id_wiseconn },
 			options
-		);
-		// response
-		res.status(200).json({ status: true, message: Msg.Farm(id_wiseconn).get, data: info });
+		).lean();
+
+		res.status(200).json({
+			id: info.id_wiseconn,
+			name: info.name,
+			description: info.description,
+			latitude: info.latitude,
+			longitude: info.longitude,
+			postalAddress: info.postalAddress,
+			account: info.account,
+			timeZone: info.timeZone,
+			timeZoneName: info.timeZoneName,
+			webhook: info.webhook,
+			metadata: info.metadata
+		});
 	} catch (err) {
 		// response error
 		next(err);
@@ -97,22 +128,55 @@ export const getFarmById = async (req: Request<intf.params>, res: Response, next
 
 
 // obtain zones by farm
-export const getZonesByIdFarm = async (req: Request<intf.params>, res: Response, next: NextFunction): Promise<void> => {
+export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		// define vars
-		const id_wiseconn = req.params.id;
-		const farm = await Farm.findOne({ id_wiseconn });
+		const farmId = req.params.id;
+		const farm: any = await Farm.findOne({ id_wiseconn: farmId }, {_id: 1}).lean();
 
-		if (!farm) throw { code: 400, message: 'el farm no existe' };
-		const { _id }: any = farm;
+		if (!farm) throw { error: 400, message: 'El farm no existe' };
 
 		// query for get zones
 		const zones: any[] = await Zone.find(
-			{ farm: _id },
+			{ farm: farm._id },
 			optionsZone
 		).lean();
 
-		res.status(200).json({ message: Msg.Zone(id_wiseconn, 'farm').getBy, data: zones });
+		const resp: any[] = zones.filter(async (data: any) => {
+			return {
+				id: data.id_wiseconn,
+				name: data.name,
+				description: data.description,
+				latitude: data.latitude,
+				longitude: data.longitude,
+				type: data.type,
+				farm: farmId,
+				pump_system: data.pump_system,
+				kc: data.kc,
+				theoreticalFlow: data.theoreticalFlow,
+				unitTheoreticalFlow: data.unitTheoreticalFlow,
+				efficiency: data.efficiency,	
+				humidity_retention: data.humidity_retention,
+				max: data.max,
+				min: data.min,
+				critical_point1: data.critical_point1,
+				critical_point2: data.critical_point2,
+				BFPressureId: data.BFPressureId,
+				AFPressureId: data.AFPressureId,
+				onlyMonitoring: data.onlyMonitoring,
+				area: data.area,
+				areaUnit: data.areaUnit,
+				metadata: data.metadata,
+				allowPumpSelection: data.allowPumpSelection,
+				predefinedPumps: data.predefinedPumps,
+				polygon: data.polygon
+			}
+		});
+
+		const info = await Promise.all(resp);
+
+		// response
+		res.status(200).json(info);
 	} catch (err) {
 		// response error
 		next(err);
@@ -120,21 +184,21 @@ export const getZonesByIdFarm = async (req: Request<intf.params>, res: Response,
 };
 
 // obtain measures by farm
-export const getMeasuresByFarm = async (req: Request<intf.params>, res: Response, next: NextFunction): Promise<void> => {
+export const getMeasuresByFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 	try {
 		// define vars
-		const id_wiseconn = req.params.id;
-		if (!id_wiseconn) throw { message: 'el id es requerido', code: 400 };
+		const idFarm = req.params.id;
+		if (!idFarm) throw { message: 'el id es requerido', code: 400 };
 
 		// query
-		const farmData = await Farm.findOne({ id_wiseconn }, '_id');
+		const farmData: any = await Farm.findOne({ id_wiseconn: idFarm }, {_id: 1}).lean();
 		if (!farmData) throw { message: 'el id suministrado noexiste en la db', code: 400 };
 
-		const ArrayData = await Measure.find({ farm: farmData._id });
+		const ArrayData: any = await Measure.find({ farm: farmData._id }).lean();
 
-		const resp: Array<any> = ArrayData.map(async (data: any, i: number) => {
+		const resp: any[] = ArrayData.filter(async (data: any) => {
 			const {
-				node,
+				id_wiseconn,
 				lastData,
 				lastDataDate,
 				depthUnit,
@@ -143,16 +207,29 @@ export const getMeasuresByFarm = async (req: Request<intf.params>, res: Response
 				createdAt,
 				soilMostureSensorType,
 				monitoringTime,
-				zone,
 				name,
 				unit,
+				readily_available_moisture,
+				field_capacity
 			} = data;
-			const physical_connection = await PhysicalConnection.findById(data.physical_connection);
+	
+			let zoneId: any = null;
+			if (data.zone) zoneId = await Zone.findOne({_id: data.zone},{id_wiseconn: 1, _id: 0}).lean();
 
-			const obj = {
-				id: data.id_wiseconn,
-				farmId: id_wiseconn,
-				zoneId: zone,
+			const physical_connection: any = await PhysicalConnection.findOne(
+				{measure: data._id},
+				{
+					_id: 0,
+					expansionPort: 1,
+					expansionBoard: 1,
+					nodePort: 1
+				}
+			).lean();
+	
+			return {
+				id: id_wiseconn,
+				farmId: idFarm,
+				zoneId: zoneId ? zoneId.id_wiseconn : null,
 				name,
 				unit,
 				lastData,
@@ -160,27 +237,22 @@ export const getMeasuresByFarm = async (req: Request<intf.params>, res: Response
 				monitoringTime,
 				sensorDepth,
 				depthUnit,
-				fieldCapacity: data.field_capacity,
-				readilyAvailableMoisture: data.readily_available_moisture,
+				fieldCapacity: field_capacity,
+				readilyAvailableMoisture: readily_available_moisture,
 				sensorType,
-				nodeId: node,
-				readType: '', // No existe en la DB
+				readType: '',
 				soilMostureSensorType,
 				createdAt,
-				physicalConnection: physical_connection,
+				physicalConnection: physical_connection
 			};
-
-			return obj;
 		});
-
-		const info = await Promise.all(resp);
-
+	
+		const info: any = await Promise.all(resp);
+		
 		// response
-		res.status(200).json({ status: true, message: Msg.Farm(id_wiseconn, 'Measures').getBy, data: info });
+		res.status(200).json(info);
 	} catch (err) {
-		// console view errr
 		// response error
 		next(err);
 	}
 };
-

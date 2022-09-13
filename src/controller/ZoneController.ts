@@ -2,32 +2,31 @@ import {
 	Zone,
 	Measure,
 	PhysicalConnection,
+	Farm
 } from '../db/models';
-import * as intf from '../db/interfaces';
-import * as Msg from '../hooks/messages';
 import { Request, Response, NextFunction } from 'express';
+
+const mongoose = require('mongoose');
 
 // obtain measures for Zone by idwiseconn
 export const getMeasuresByZone = async (
-	req: Request<intf.params>,
+	req: Request,
 	res: Response,
 	next: NextFunction,
 ): Promise<void> => {
 	try {
 		// define vars
-		const id = req.params.id;
+		const zoneId = req.params.id;
 
 		// query
-		const zoneData = await Zone.findOne({ 'id_wiseconn': id }, {'_id': 1, 'id_wiseconn': 1});
-		if (!zoneData) throw { message: 'El id suministrado no existe en la DB', code: 400 };
+		const zoneData: any = await Zone.findOne({ id_wiseconn: zoneId }, {'_id': 1}).lean();
+		if (!zoneData) throw { message: 'El id_wiseconn no existe', error: 400 };
 
-		const ArrayData = await Measure.find({ zone: zoneData._id });
+		const ArrayData: any = await Measure.find({ zone: zoneData._id }).lean();
 
-		const resp: Array<any> = ArrayData.map(async (data: any, i: number) => {
+		const resp: Array<any> = ArrayData.filter(async (data: any) => {
 			const {
-				id,
 				id_wiseconn,
-				node,
 				lastData,
 				lastDataDate,
 				depthUnit,
@@ -36,26 +35,26 @@ export const getMeasuresByZone = async (
 				createdAt,
 				soilMostureSensorType,
 				monitoringTime,
-				farm,
 				name,
 				unit,
 				brand
 			} = data;
-			const physical_connection = await PhysicalConnection.findById(
-				data.physical_connection,
+			const physical_connection: any = await PhysicalConnection.findOne(
+				{measure: data._id},
 				{
 					_id: 0,
 					expansionPort: 1,
 					expansionBoard: 1,
 					nodePort: 1
 				}
-			);
+			).lean();
 
-			const obj: any = {
-				id: data.id,
-				id_wiseconn: data.id_wiseconn,
-				farmId: farm,
-				zoneId: zoneData._id,
+			const farmId: any = await Farm.findOne({_id: data.farm},{id_wiseconn: 1, _id: 0}).lean();
+
+			return {
+				id: id_wiseconn,
+				farmId: farmId.id_wiseconn,
+				zoneId: zoneId,
 				name,
 				unit,
 				lastData,
@@ -66,29 +65,22 @@ export const getMeasuresByZone = async (
 				fieldCapacity: data.field_capacity,
 				readilyAvailableMoisture: data.readily_available_moisture,
 				sensorType,
-				nodeId: node,
 				readType: 'direct',
 				soilMostureSensorType,
 				brand,
 				createdAt,
-				physicalConnection: physical_connection,
+				physicalConnection: physical_connection
 			};
 
-			return obj;
 		});
 
 		const info = await Promise.all(resp);
 
 		// response
-		res.status(200).json({
-			status: true,
-			message: Msg.Farm(zoneData._id, 'Measures').getBy,
-			data: info,
-		});
+		res.status(200).json(info);
 	} catch (err) {
-		// console view errr
-		console.log('error');
 		// response error
 		next(err);
 	}
 };
+

@@ -1,10 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import moment from 'moment';
-import * as intf from '../db/interfaces';
 import { TimeQuery } from '../db/interfaces';
-import * as Msg from '../hooks/messages';
-import axios, { AxiosResponse } from 'axios';
-import { Measure, MeasureData, Zone, VarDerivateSector, Farm } from '../db/models';
+import { MeasureData } from '../db/models';
 
 // cron for
 const date_valid = (init: string, end: string, i: number) => {
@@ -16,7 +13,7 @@ const date_valid = (init: string, end: string, i: number) => {
 
 /** getMeasureDatasByMeasure  */
 export const getMeasureDatasByMeasure = async (
-	req: Request<intf.params, any, TimeQuery>,
+	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
@@ -26,8 +23,8 @@ export const getMeasureDatasByMeasure = async (
 		const { initTime, endTime }: any = req.query;
 
 		// error of vars
-		if (!id) throw { message: 'El id es requerido', code: 400 };
-		else if (!initTime || !endTime) throw { message: 'se requiere una fecha de inicio y una de fin', code: 400 };
+		if (!id) throw { message: 'El id es requerido', error: 400 };
+		else if (!initTime || !endTime) throw { message: 'Se requiere una fecha de inicio y una de fin', error: 400 };
 
 		// query
 		const time: any = {
@@ -44,7 +41,7 @@ export const getMeasureDatasByMeasure = async (
 		).lean();
 
 		// response
-		res.status(200).send({ state: true, message: Msg.MeasureData(id, 'Measure').getBy, data: resps });
+		res.status(200).send(resps);
 	} catch (err) {
 		// response error
 		next(err);

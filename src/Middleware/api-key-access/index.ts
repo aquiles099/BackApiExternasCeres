@@ -7,21 +7,22 @@ import { KeyApiAccess } from '../../db/models';
  */
 export default async (req: Request, res: Response, next: NextFunction) => {
 	try {
-		const keyApiAccess = req.query.keyApiAccess;
-		console.log(req.query)
+		const {keyapiaccess}: any = req.headers;
+
+		if (!keyapiaccess) throw { message: 'Acceso no permitido, ApiKey inválido', error: 401 };
+
 		const today = new Date().toISOString();
 
 		const keyValid: any = await KeyApiAccess.findOne(
 			{
-				keyAccess: keyApiAccess,
+				keyAccess: keyapiaccess,
 				dateExpire: {$gte: today}
 			}
 		);
-		console.log(keyValid)
 		if (keyValid) {
 			next();
-		} else throw { status: false, message: 'Acceso no permitido, ApiKey inválido', code: 401 };
+		} else throw { message: 'Acceso no permitido, ApiKey inválido', error: 401 };
 	} catch (err) {
-		next(err);
+		next({ message: 'Acceso no permitido, ApiKey inválido', error: 401 });
 	}
 };

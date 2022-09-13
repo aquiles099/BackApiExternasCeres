@@ -11,8 +11,8 @@ import {
 } from '../../controller/FarmController'  ;
 
 router.route('/farms').get(getFarms);
-router.route('/farm/:id').get(getFarmById);
-router.route('/farm/:id/zones').get(getZonesByIdFarm);
-router.route('/farm/:id/measures').get(getMeasuresByFarm);
+router.route('/farms/:id').get(getFarmById);
+router.route('/farms/:id/zones').get(getZonesByIdFarm);
+router.route('/farms/:id/measures').get(getMeasuresByFarm);
 
 export default router;
