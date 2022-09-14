@@ -1,8 +1,7 @@
 import {
 	Farm,
 	Measure,
-	Zone,
-	PhysicalConnection
+	Zone
 } from '../db/models';
 import { Request, Response, NextFunction } from 'express';
 
@@ -67,7 +66,10 @@ export const getFarms = async (req: Request, res: Response, next: NextFunction):
 	try {
 		// query
 		const farmData: any = await Farm.find(
-			{},
+			{
+				active_cloning: true,
+				active: true
+			},
 			options
 		).lean();
 		// response
@@ -105,7 +107,11 @@ export const getFarmById = async (req: Request, res: Response, next: NextFunctio
 		if (!id_wiseconn) throw { error: 400, message: 'El Id es requerido' };
 		// query
 		const info: any = await Farm.findOne(
-			{ id_wiseconn },
+			{
+				id_wiseconn,
+				active_cloning: true,
+				active: true
+			},
 			options
 		).lean();
 
@@ -134,7 +140,14 @@ export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFu
 	try {
 		// define vars
 		const farmId = req.params.id;
-		const farm: any = await Farm.findOne({ id_wiseconn: farmId }, {_id: 1}).lean();
+		const farm: any = await Farm.findOne(
+			{
+				id_wiseconn: farmId,
+				active_cloning: true,
+				active: true
+			},
+			{_id: 1}
+		).lean();
 
 		if (!farm) throw { error: 400, message: 'El farm no existe' };
 
@@ -153,7 +166,7 @@ export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFu
 					latitude: data.latitude,
 					longitude: data.longitude,
 					type: data.type,
-					farm: farmId,
+					farmId,
 					pump_system: data.pump_system,
 					kc: data.kc,
 					theoreticalFlow: data.theoreticalFlow,
@@ -196,7 +209,14 @@ export const getMeasuresByFarm = async (req: Request, res: Response, next: NextF
 		if (!idFarm) throw { message: 'El Id es requerido', error: 400 };
 
 		// query
-		const farmData: any = await Farm.findOne({ id_wiseconn: idFarm }, {_id: 1}).lean();
+		const farmData: any = await Farm.findOne(
+			{
+				id_wiseconn: idFarm,
+				active_cloning: true,
+				active: true
+			},
+			{_id: 1}
+		).lean();
 		if (!farmData) throw { message: 'El Id suministrado no existe', error: 400 };
 
 		const ArrayData: any = await Measure.find(

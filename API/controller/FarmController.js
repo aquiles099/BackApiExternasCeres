@@ -68,7 +68,10 @@ const optionsZone = {
 const getFarms = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // query
-        const farmData = yield models_1.Farm.find({}, options).lean();
+        const farmData = yield models_1.Farm.find({
+            active_cloning: true,
+            active: true
+        }, options).lean();
         // response
         const resp = farmData.filter((data) => {
             return {
@@ -103,7 +106,11 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
         if (!id_wiseconn)
             throw { error: 400, message: 'El Id es requerido' };
         // query
-        const info = yield models_1.Farm.findOne({ id_wiseconn }, options).lean();
+        const info = yield models_1.Farm.findOne({
+            id_wiseconn,
+            active_cloning: true,
+            active: true
+        }, options).lean();
         res.status(200).json({
             id: info.id_wiseconn,
             name: info.name,
@@ -129,7 +136,11 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     try {
         // define vars
         const farmId = req.params.id;
-        const farm = yield models_1.Farm.findOne({ id_wiseconn: farmId }, { _id: 1 }).lean();
+        const farm = yield models_1.Farm.findOne({
+            id_wiseconn: farmId,
+            active_cloning: true,
+            active: true
+        }, { _id: 1 }).lean();
         if (!farm)
             throw { error: 400, message: 'El farm no existe' };
         // query for get zones
@@ -142,7 +153,7 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
                 latitude: data.latitude,
                 longitude: data.longitude,
                 type: data.type,
-                farm: farmId,
+                farmId,
                 pump_system: data.pump_system,
                 kc: data.kc,
                 theoreticalFlow: data.theoreticalFlow,
@@ -182,7 +193,11 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         if (!idFarm)
             throw { message: 'El Id es requerido', error: 400 };
         // query
-        const farmData = yield models_1.Farm.findOne({ id_wiseconn: idFarm }, { _id: 1 }).lean();
+        const farmData = yield models_1.Farm.findOne({
+            id_wiseconn: idFarm,
+            active_cloning: true,
+            active: true
+        }, { _id: 1 }).lean();
         if (!farmData)
             throw { message: 'El Id suministrado no existe', error: 400 };
         const ArrayData = yield models_1.Measure.find({ farm: farmData._id }, {
