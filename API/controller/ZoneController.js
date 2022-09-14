@@ -22,7 +22,7 @@ const getMeasuresByZone = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         if (!zoneData)
             throw { message: 'El id_wiseconn no existe', error: 400 };
         const ArrayData = yield models_1.Measure.find({ zone: zoneData._id }).lean();
-        const resp = ArrayData.filter((data) => __awaiter(void 0, void 0, void 0, function* () {
+        yield Promise.all(ArrayData.map((data) => __awaiter(void 0, void 0, void 0, function* () {
             const { id_wiseconn, lastData, lastDataDate, depthUnit, sensorDepth, sensorType, createdAt, soilMostureSensorType, monitoringTime, name, unit, brand } = data;
             const physical_connection = yield models_1.PhysicalConnection.findOne({ measure: data._id }, {
                 _id: 0,
@@ -51,10 +51,10 @@ const getMeasuresByZone = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                 createdAt,
                 physicalConnection: physical_connection
             };
-        }));
-        const info = yield Promise.all(resp);
-        // response
-        res.status(200).json(info);
+        }))).then((resp) => res.status(200).json(resp))
+            .catch((err) => {
+            res.status(400).json({ message: 'Error al obtener la data', error: 400 });
+        });
     }
     catch (err) {
         // response error

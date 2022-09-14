@@ -100,6 +100,8 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     try {
         // define vars
         const id_wiseconn = req.params.id;
+        if (!id_wiseconn)
+            throw { error: 400, message: 'El Id es requerido' };
         // query
         const info = yield models_1.Farm.findOne({ id_wiseconn }, options).lean();
         res.status(200).json({
@@ -132,7 +134,7 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
             throw { error: 400, message: 'El farm no existe' };
         // query for get zones
         const zones = yield models_1.Zone.find({ farm: farm._id }, optionsZone).lean();
-        const resp = zones.filter((data) => __awaiter(void 0, void 0, void 0, function* () {
+        yield Promise.all(zones.map((data) => __awaiter(void 0, void 0, void 0, function* () {
             return {
                 id: data.id_wiseconn,
                 name: data.name,
@@ -161,10 +163,10 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
                 predefinedPumps: data.predefinedPumps,
                 polygon: data.polygon
             };
-        }));
-        const info = yield Promise.all(resp);
-        // response
-        res.status(200).json(info);
+        }))).then((resp) => res.status(200).json(resp))
+            .catch((err) => {
+            res.status(400).json({ message: 'Error al obtener la data', error: 400 });
+        });
     }
     catch (err) {
         // response error
@@ -178,46 +180,52 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
         // define vars
         const idFarm = req.params.id;
         if (!idFarm)
-            throw { message: 'el id es requerido', code: 400 };
+            throw { message: 'El Id es requerido', error: 400 };
         // query
         const farmData = yield models_1.Farm.findOne({ id_wiseconn: idFarm }, { _id: 1 }).lean();
         if (!farmData)
-            throw { message: 'el id suministrado noexiste en la db', code: 400 };
-        const ArrayData = yield models_1.Measure.find({ farm: farmData._id }).lean();
-        const resp = ArrayData.filter((data) => __awaiter(void 0, void 0, void 0, function* () {
-            const { id_wiseconn, lastData, lastDataDate, depthUnit, sensorDepth, sensorType, createdAt, soilMostureSensorType, monitoringTime, name, unit, readily_available_moisture, field_capacity } = data;
-            let zoneId = null;
-            if (data.zone)
-                zoneId = yield models_1.Zone.findOne({ _id: data.zone }, { id_wiseconn: 1, _id: 0 }).lean();
-            const physical_connection = yield models_1.PhysicalConnection.findOne({ measure: data._id }, {
-                _id: 0,
-                expansionPort: 1,
-                expansionBoard: 1,
-                nodePort: 1
-            }).lean();
+            throw { message: 'El Id suministrado no existe', error: 400 };
+        const ArrayData = yield models_1.Measure.find({ farm: farmData._id }, {
+            _id: 0,
+            id_wiseconn: 1,
+            lastData: 1,
+            lastDataDate: 1,
+            depthUnit: 1,
+            sensorDepth: 1,
+            sensorType: 1,
+            createdAt: 1,
+            soilMostureSensorType: 1,
+            monitoringTime: 1,
+            name: 1,
+            unit: 1,
+            readily_available_moisture: 1,
+            field_capacity: 1,
+            zone: 1
+        }).lean();
+        yield Promise.all(ArrayData.map((data) => __awaiter(void 0, void 0, void 0, function* () {
+            const zoneId = yield models_1.Zone.findOne({ _id: data.zone }, { id_wiseconn: 1, _id: 0 }).lean();
             return {
-                id: id_wiseconn,
+                id: data.id_wiseconn,
                 farmId: idFarm,
-                zoneId: zoneId ? zoneId.id_wiseconn : null,
-                name,
-                unit,
-                lastData,
-                lastDataDate,
-                monitoringTime,
-                sensorDepth,
-                depthUnit,
-                fieldCapacity: field_capacity,
-                readilyAvailableMoisture: readily_available_moisture,
-                sensorType,
+                zoneId: zoneId ? zoneId.id_wiseconn : '',
+                name: data.name,
+                unit: data.unit || '',
+                lastData: data.lastData || '',
+                lastDataDate: data.lastDataDate || '',
+                monitoringTime: data.monitoringTime || '',
+                sensorDepth: data.sensorDepth || '',
+                depthUnit: data.depthUnit || '',
+                fieldCapacity: data.field_capacity || '',
+                readilyAvailableMoisture: data.readily_available_moisture || '',
+                sensorType: data.sensorType || '',
                 readType: '',
-                soilMostureSensorType,
-                createdAt,
-                physicalConnection: physical_connection
+                soilMostureSensorType: data.soilMostureSensorType || '',
+                createdAt: data.createdAt
             };
-        }));
-        const info = yield Promise.all(resp);
-        // response
-        res.status(200).json(info);
+        }))).then((resp) => res.status(200).json(resp))
+            .catch((err) => {
+            res.status(400).json({ message: 'Error al obtener la data', error: 400 });
+        });
     }
     catch (err) {
         // response error

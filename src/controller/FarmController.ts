@@ -101,6 +101,8 @@ export const getFarmById = async (req: Request, res: Response, next: NextFunctio
 	try {
 		// define vars
 		const id_wiseconn = req.params.id;
+
+		if (!id_wiseconn) throw { error: 400, message: 'El Id es requerido' };
 		// query
 		const info: any = await Farm.findOne(
 			{ id_wiseconn },
@@ -142,41 +144,44 @@ export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFu
 			optionsZone
 		).lean();
 
-		const resp: any[] = zones.filter(async (data: any) => {
-			return {
-				id: data.id_wiseconn,
-				name: data.name,
-				description: data.description,
-				latitude: data.latitude,
-				longitude: data.longitude,
-				type: data.type,
-				farm: farmId,
-				pump_system: data.pump_system,
-				kc: data.kc,
-				theoreticalFlow: data.theoreticalFlow,
-				unitTheoreticalFlow: data.unitTheoreticalFlow,
-				efficiency: data.efficiency,	
-				humidity_retention: data.humidity_retention,
-				max: data.max,
-				min: data.min,
-				critical_point1: data.critical_point1,
-				critical_point2: data.critical_point2,
-				BFPressureId: data.BFPressureId,
-				AFPressureId: data.AFPressureId,
-				onlyMonitoring: data.onlyMonitoring,
-				area: data.area,
-				areaUnit: data.areaUnit,
-				metadata: data.metadata,
-				allowPumpSelection: data.allowPumpSelection,
-				predefinedPumps: data.predefinedPumps,
-				polygon: data.polygon
-			}
+		await Promise.all(
+			zones.map(async (data: any) => {
+				return {
+					id: data.id_wiseconn,
+					name: data.name,
+					description: data.description,
+					latitude: data.latitude,
+					longitude: data.longitude,
+					type: data.type,
+					farm: farmId,
+					pump_system: data.pump_system,
+					kc: data.kc,
+					theoreticalFlow: data.theoreticalFlow,
+					unitTheoreticalFlow: data.unitTheoreticalFlow,
+					efficiency: data.efficiency,	
+					humidity_retention: data.humidity_retention,
+					max: data.max,
+					min: data.min,
+					critical_point1: data.critical_point1,
+					critical_point2: data.critical_point2,
+					BFPressureId: data.BFPressureId,
+					AFPressureId: data.AFPressureId,
+					onlyMonitoring: data.onlyMonitoring,
+					area: data.area,
+					areaUnit: data.areaUnit,
+					metadata: data.metadata,
+					allowPumpSelection: data.allowPumpSelection,
+					predefinedPumps: data.predefinedPumps,
+					polygon: data.polygon
+				}
+			})
+		).then((resp: any) => 
+			res.status(200).json(resp)
+		)
+		.catch((err: any) => {
+			res.status(400).json({ message: 'Error al obtener la data', error: 400 })
 		});
 
-		const info = await Promise.all(resp);
-
-		// response
-		res.status(200).json(info);
 	} catch (err) {
 		// response error
 		next(err);
@@ -188,69 +193,62 @@ export const getMeasuresByFarm = async (req: Request, res: Response, next: NextF
 	try {
 		// define vars
 		const idFarm = req.params.id;
-		if (!idFarm) throw { message: 'el id es requerido', code: 400 };
+		if (!idFarm) throw { message: 'El Id es requerido', error: 400 };
 
 		// query
 		const farmData: any = await Farm.findOne({ id_wiseconn: idFarm }, {_id: 1}).lean();
-		if (!farmData) throw { message: 'el id suministrado noexiste en la db', code: 400 };
+		if (!farmData) throw { message: 'El Id suministrado no existe', error: 400 };
 
-		const ArrayData: any = await Measure.find({ farm: farmData._id }).lean();
+		const ArrayData: any = await Measure.find(
+			{ farm: farmData._id },
+			{
+				_id: 0,
+				id_wiseconn: 1,
+				lastData: 1,
+				lastDataDate: 1,
+				depthUnit: 1,
+				sensorDepth: 1,
+				sensorType: 1,
+				createdAt: 1,
+				soilMostureSensorType: 1,
+				monitoringTime: 1,
+				name: 1,
+				unit: 1,
+				readily_available_moisture: 1,
+				field_capacity: 1,
+				zone: 1
+			}
+		).lean();
 
-		const resp: any[] = ArrayData.filter(async (data: any) => {
-			const {
-				id_wiseconn,
-				lastData,
-				lastDataDate,
-				depthUnit,
-				sensorDepth,
-				sensorType,
-				createdAt,
-				soilMostureSensorType,
-				monitoringTime,
-				name,
-				unit,
-				readily_available_moisture,
-				field_capacity
-			} = data;
-	
-			let zoneId: any = null;
-			if (data.zone) zoneId = await Zone.findOne({_id: data.zone},{id_wiseconn: 1, _id: 0}).lean();
-
-			const physical_connection: any = await PhysicalConnection.findOne(
-				{measure: data._id},
-				{
-					_id: 0,
-					expansionPort: 1,
-					expansionBoard: 1,
-					nodePort: 1
-				}
-			).lean();
-	
-			return {
-				id: id_wiseconn,
-				farmId: idFarm,
-				zoneId: zoneId ? zoneId.id_wiseconn : null,
-				name,
-				unit,
-				lastData,
-				lastDataDate,
-				monitoringTime,
-				sensorDepth,
-				depthUnit,
-				fieldCapacity: field_capacity,
-				readilyAvailableMoisture: readily_available_moisture,
-				sensorType,
-				readType: '',
-				soilMostureSensorType,
-				createdAt,
-				physicalConnection: physical_connection
-			};
+		await Promise.all(
+			ArrayData.map(async (data: any) => {
+				const zoneId: any = await Zone.findOne({_id: data.zone},{id_wiseconn: 1, _id: 0}).lean();
+				return {
+					id: data.id_wiseconn,
+					farmId: idFarm,
+					zoneId: zoneId ? zoneId.id_wiseconn : '',
+					name: data.name,
+					unit: data.unit || '',
+					lastData: data.lastData || '',
+					lastDataDate: data.lastDataDate || '',
+					monitoringTime: data.monitoringTime || '',
+					sensorDepth: data.sensorDepth || '',
+					depthUnit: data.depthUnit || '',
+					fieldCapacity: data.field_capacity || '',
+					readilyAvailableMoisture: data.readily_available_moisture || '',
+					sensorType: data.sensorType || '',
+					readType: '',
+					soilMostureSensorType: data.soilMostureSensorType || '',
+					createdAt: data.createdAt
+				};
+			})
+		).then((resp: any) => 
+			res.status(200).json(resp)
+		)
+		.catch((err: any) => {
+			res.status(400).json({ message: 'Error al obtener la data', error: 400 })
 		});
-	
-		const info: any = await Promise.all(resp);
-		
-		// response
-		res.status(200).json(info);
+
 	} catch (err) {
 		// response error
 		next(err);
