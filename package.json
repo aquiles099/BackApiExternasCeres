@@ -52,6 +52,8 @@
 		"nvm": "^0.0.4",
 		"parse2-kmz": "^1.0.5",
 		"pdf-creator-node": "^2.2.3",
+		"pino": "^8.5.0",
+		"pino-pretty": "^9.1.0",
 		"sharp": "^0.28.3",
 		"svg2png": "^4.1.1",
 		"uuid": "^8.3.2",

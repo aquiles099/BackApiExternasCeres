@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import moment from 'moment';
-import { TimeQuery } from '../db/interfaces';
 import { MeasureData } from '../db/models';
+import logger from '../logger.js';
 
 // cron for
 const date_valid = (init: string, end: string, i: number) => {
@@ -17,33 +17,62 @@ export const getMeasureDatasByMeasure = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	try {
-		// define vars
-		const { id } = req.params;
-		const { initTime, endTime }: any = req.query;
+	// define vars
+	const { id } = req.params;
+	const { initTime, endTime }: any = req.query;
 
-		// error of vars
-		if (!id) throw { message: 'El id es requerido', error: 400 };
-		else if (!initTime || !endTime) throw { message: 'Se requiere una fecha de inicio y una de fin', error: 400 };
-
-		// query
-		const time: any = {
-			$gte: new Date(initTime).toISOString(),
-			$lt: new Date(endTime).toISOString(),
-		};
-		const resps: any = await MeasureData.find(
-			{ $and: [{ id_wiseconn: id }, { time }] },
-			{
-				_id: 0,
-				time: 1,
-				value: 1
-			}
-		).lean();
-
-		// response
-		res.status(200).send(resps);
-	} catch (err) {
-		// response error
-		next(err);
+	if (!id) {
+		logger.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
+		res.status(400).json({
+			message: 'El id es requerido o es inválido'
+		});
+		return;
+	} else if (!initTime || !endTime) {
+		logger.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
+		res.status(400).json({
+			message: 'Se requiere un período de fecha de inicio y fecha fin'
+		});
+		return;
+	} else if (initTime.length != 10 || endTime.length != 10) {
+		logger.warn('WARNING status 400 result invalid format initTime & endTime in getMeasureDatasByMeasure');
+		res.status(400).json({
+			message: 'Formato inválido en fecha de inicio y fecha fin'
+		});
+		return;
 	}
+
+	// query
+	await MeasureData.find(
+		{ $and: 
+			[
+				{ id_wiseconn: id },
+				{
+					time: {
+						$gte: initTime + 'T00:00:00.000Z',
+						$lte: endTime + 'T23:59:00.000Z'
+					}
+				}
+			]
+		},
+		{
+			_id: 0,
+			time: 1,
+			value: 1
+		}
+	).lean()
+	.then(async (dataMeasure: any) => {
+		if (dataMeasure && dataMeasure.length > 0) {
+			logger.info('INFO status 200 result OK in getMeasureDatasByMeasure');
+			res.status(200).json(dataMeasure);
+		} else {
+			logger.warn('WARNING status 200 result no data in getMeasureDatasByMeasure');
+			res.status(200).json([]);
+		}
+
+	})
+	.catch((err: any) => {
+		// error
+		logger.error('ERROR in getMeasureDatasByMeasure ' + err);
+		res.status(500).json({error: 500, message: 'Error in API getting data'});
+	});
 };

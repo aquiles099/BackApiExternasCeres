@@ -5,10 +5,10 @@ import {
 } from '../db/models';
 import { Request, Response, NextFunction } from 'express';
 
-const mongoose = require('mongoose');
+import logger from '../logger.js';
 
 const options = {
-	_id: 1,
+	_id: 0,
 	id_wiseconn: 1,
 	name: 1,
 	description: 1,
@@ -26,7 +26,7 @@ const options = {
 };
 
 const optionsZone = {
-	_id: 1,
+	_id: 0,
 	id_wiseconn: 1,
 	name: 1,
 	description: 1,
@@ -61,216 +61,305 @@ const optionsZone = {
 	}
 };
 
-// obtain all farms
+// getting all farms
 export const getFarms = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-		// query
-		const farmData: any = await Farm.find(
-			{
-				active_cloning: true,
-				active: true
-			},
-			options
-		).lean();
-		// response
-		const resp: any = farmData.filter((data:any) => {
-			return {
-				id: data.id_wiseconn,
-				name: data.name,
-				description: data.description,
-				latitude: data.latitude,
-				longitude: data.longitude,
-				postalAddress: data.postalAddress,
-				account: data.account,
-				timeZone: data.timeZone,
-				timeZoneName: data.timeZoneName,
-				webhook: data.webhook,
-				metadata: data.metadata
-			}
-		});
-		const info: any = await Promise.all(resp);
+	// query
+	await Farm.find(
+		{
+			active_cloning: true,
+			active: true
+		},
+		options
+	).lean()
+	.then(async (farmData: any) => {
+		if (farmData && farmData.length > 0) {
+			await Promise.all(
+				farmData.map((data:any) => {
+					return {
+						id: data.id_wiseconn,
+						name: data.name,
+						description: data.description,
+						latitude: data.latitude,
+						longitude: data.longitude,
+						postalAddress: data.postalAddress,
+						account: data.account,
+						timeZone: data.timeZone,
+						timeZoneName: data.timeZoneName,
+						webhook: data.webhook,
+						metadata: data.metadata
+					}
+				})
+			)
+			.then((resp: any) => {
+				logger.info('INFO status 200 result OK in getFarms');
+				res.status(200).json(resp);
+			})
+			.catch((err: any) => {
+				// error
+				logger.error('ERROR in getFarms ' + err);
+				res.status(500).json({error: 500, message: 'Error in API getting data'});
+			});
+		} else {
+			logger.warn('WARNING status 200 result no data in getFarms');
+			res.status(200).json([]);
+		}
 
-		// response
-		res.status(200).json(info);
-	} catch (err) {
-		// response error
-		next(err);
-	}
+	})
+	.catch((err: any) => {
+		// error
+		logger.error('ERROR in getFarms ' + err);
+		res.status(500).json({error: 500, message: 'Error in API getting data'});
+	});
 };
 
-// obtain farm by idwiseconn
+// getting farm by idwiseconn
 export const getFarmById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-		// define vars
-		const id_wiseconn = req.params.id;
+	// define vars
+	const id_wiseconn = req.params.id;
 
-		if (!id_wiseconn) throw { error: 400, message: 'El Id es requerido' };
-		// query
-		const info: any = await Farm.findOne(
-			{
-				id_wiseconn,
-				active_cloning: true,
-				active: true
-			},
-			options
-		).lean();
-
-		res.status(200).json({
-			id: info.id_wiseconn,
-			name: info.name,
-			description: info.description,
-			latitude: info.latitude,
-			longitude: info.longitude,
-			postalAddress: info.postalAddress,
-			account: info.account,
-			timeZone: info.timeZone,
-			timeZoneName: info.timeZoneName,
-			webhook: info.webhook,
-			metadata: info.metadata
+	if (!id_wiseconn) {
+		logger.warn('WARNING status 400 result ID invalid in getFarmById');
+		res.status(400).json({
+			message: 'ID del Farm es inválido'
 		});
-	} catch (err) {
-		// response error
-		next(err);
-	}
+		return;
+	};
+	// query
+	await Farm.findOne(
+		{
+			id_wiseconn,
+			active_cloning: true,
+			active: true
+		},
+		options
+	
+	).lean()
+	.then(async (farmData: any) => {
+		if (farmData) {
+			logger.info('INFO status 200 result OK in getFarmById');
+			res.status(200).json({
+				id: farmData.id_wiseconn,
+				name: farmData.name,
+				description: farmData.description,
+				latitude: farmData.latitude,
+				longitude: farmData.longitude,
+				postalAddress: farmData.postalAddress,
+				account: farmData.account,
+				timeZone: farmData.timeZone,
+				timeZoneName: farmData.timeZoneName,
+				webhook: farmData.webhook,
+				metadata: farmData.metadata
+			});
+		} else {
+			logger.warn('WARNING status 200 result no data in getFarmById');
+			res.status(200).json({
+				message: 'ID del Farm no existe o es inválido'
+			});
+		}
+
+	})
+	.catch((err: any) => {
+		// error
+		logger.error('ERROR in getFarmById ' + err);
+		res.status(500).json({error: 500, message: 'Error in API getting data'});
+	});
 };
 
 
-// obtain zones by farm
+// getting zones by farm
 export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-		// define vars
-		const farmId = req.params.id;
-		const farm: any = await Farm.findOne(
-			{
-				id_wiseconn: farmId,
-				active_cloning: true,
-				active: true
-			},
-			{_id: 1}
-		).lean();
-
-		if (!farm) throw { error: 400, message: 'El farm no existe' };
-
-		// query for get zones
-		const zones: any[] = await Zone.find(
-			{ farm: farm._id },
-			optionsZone
-		).lean();
-
-		await Promise.all(
-			zones.map(async (data: any) => {
-				return {
-					id: data.id_wiseconn,
-					name: data.name,
-					description: data.description,
-					latitude: data.latitude,
-					longitude: data.longitude,
-					type: data.type,
-					farmId,
-					pump_system: data.pump_system,
-					kc: data.kc,
-					theoreticalFlow: data.theoreticalFlow,
-					unitTheoreticalFlow: data.unitTheoreticalFlow,
-					efficiency: data.efficiency,	
-					humidity_retention: data.humidity_retention,
-					max: data.max,
-					min: data.min,
-					critical_point1: data.critical_point1,
-					critical_point2: data.critical_point2,
-					BFPressureId: data.BFPressureId,
-					AFPressureId: data.AFPressureId,
-					onlyMonitoring: data.onlyMonitoring,
-					area: data.area,
-					areaUnit: data.areaUnit,
-					metadata: data.metadata,
-					allowPumpSelection: data.allowPumpSelection,
-					predefinedPumps: data.predefinedPumps,
-					polygon: data.polygon
+	// define vars
+	const farmId = req.params.id;
+	if (!farmId) {
+		logger.warn('WARNING status 400 result ID invalid in getZonesByIdFarm');
+		res.status(400).json({
+			message: 'ID del Farm es inválido'
+		});
+		return;
+	};
+	await Farm.findOne(
+		{
+			id_wiseconn: farmId,
+			active_cloning: true,
+			active: true
+		},
+		{_id: 1}
+	).lean()
+	.then(async (farmData: any) => {
+		if (farmData) {
+			// query for get zones
+			await Zone.find(
+				{ farm: farmData._id },
+				optionsZone
+			).lean()
+			.then(async (zonesData: any) => {
+				if (zonesData && zonesData.length > 0) {
+					await Promise.all(
+						zonesData.map((data: any) => {
+							return {
+								id: data.id_wiseconn,
+								name: data.name,
+								description: data.description,
+								latitude: data.latitude,
+								longitude: data.longitude,
+								type: data.type,
+								farmId,
+								pump_system: data.pump_system,
+								kc: data.kc,
+								theoreticalFlow: data.theoreticalFlow,
+								unitTheoreticalFlow: data.unitTheoreticalFlow,
+								efficiency: data.efficiency,	
+								humidity_retention: data.humidity_retention,
+								max: data.max,
+								min: data.min,
+								critical_point1: data.critical_point1,
+								critical_point2: data.critical_point2,
+								BFPressureId: data.BFPressureId,
+								AFPressureId: data.AFPressureId,
+								onlyMonitoring: data.onlyMonitoring,
+								area: data.area,
+								areaUnit: data.areaUnit,
+								metadata: data.metadata,
+								allowPumpSelection: data.allowPumpSelection,
+								predefinedPumps: data.predefinedPumps,
+								polygon: data.polygon
+							}
+						})
+					).then((resp: any) => {
+						logger.info('INFO status 200 result OK in getZonesByIdFarm');
+						res.status(200).json(resp)
+					})
+					.catch((err: any) => {
+						// error
+						logger.error('ERROR in getZonesByIdFarm ' + err);
+						res.status(500).json({error: 500, message: 'Error in API getting data'});
+					});
+				} else {
+					logger.warn('WARNING status 200 result not exist zones in getZonesByIdFarm');
+					res.status(200).json([]);
 				}
 			})
-		).then((resp: any) => 
-			res.status(200).json(resp)
-		)
-		.catch((err: any) => {
-			res.status(400).json({ message: 'Error al obtener la data', error: 400 })
-		});
+			.catch((err: any) => {
+				// error
+				logger.error('ERROR in getZonesByIdFarm ' + err);
+				res.status(500).json({error: 500, message: 'Error in API getting data'});
+			});
+		} else {
+			logger.warn('WARNING status 200 result invalid ID or not exist in getZonesByIdFarm');
+			res.status(200).json({
+				message: 'ID del Farm no existe o es inválido'
+			});
+		}
+	})
+	.catch((err: any) => {
+		// error
+		logger.error('ERROR in getZonesByIdFarm ' + err);
+		res.status(500).json({error: 500, message: 'Error in API getting data'});
+	});
 
-	} catch (err) {
-		// response error
-		next(err);
-	}
 };
 
-// obtain measures by farm
+// getting measures by farm
 export const getMeasuresByFarm = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-	try {
-		// define vars
-		const idFarm = req.params.id;
-		if (!idFarm) throw { message: 'El Id es requerido', error: 400 };
-
-		// query
-		const farmData: any = await Farm.findOne(
-			{
-				id_wiseconn: idFarm,
-				active_cloning: true,
-				active: true
-			},
-			{_id: 1}
-		).lean();
-		if (!farmData) throw { message: 'El Id suministrado no existe', error: 400 };
-
-		const ArrayData: any = await Measure.find(
-			{ farm: farmData._id },
-			{
-				_id: 0,
-				id_wiseconn: 1,
-				lastData: 1,
-				lastDataDate: 1,
-				depthUnit: 1,
-				sensorDepth: 1,
-				sensorType: 1,
-				createdAt: 1,
-				soilMostureSensorType: 1,
-				monitoringTime: 1,
-				name: 1,
-				unit: 1,
-				readily_available_moisture: 1,
-				field_capacity: 1,
-				zone: 1
-			}
-		).lean();
-
-		await Promise.all(
-			ArrayData.map(async (data: any) => {
-				const zoneId: any = await Zone.findOne({_id: data.zone},{id_wiseconn: 1, _id: 0}).lean();
-				return {
-					id: data.id_wiseconn,
-					farmId: idFarm,
-					zoneId: zoneId ? zoneId.id_wiseconn : '',
-					name: data.name,
-					unit: data.unit || '',
-					lastData: data.lastData || '',
-					lastDataDate: data.lastDataDate || '',
-					monitoringTime: data.monitoringTime || '',
-					sensorDepth: data.sensorDepth || '',
-					depthUnit: data.depthUnit || '',
-					fieldCapacity: data.field_capacity || '',
-					readilyAvailableMoisture: data.readily_available_moisture || '',
-					sensorType: data.sensorType || '',
-					readType: '',
-					soilMostureSensorType: data.soilMostureSensorType || '',
-					createdAt: data.createdAt
-				};
-			})
-		).then((resp: any) => 
-			res.status(200).json(resp)
-		)
-		.catch((err: any) => {
-			res.status(400).json({ message: 'Error al obtener la data', error: 400 })
+	// define vars
+	const farmId = req.params.id;
+	if (!farmId) {
+		logger.warn('WARNING status 400 result ID invalid in getMeasuresByFarm');
+		res.status(400).json({
+			message: 'ID del Farm es inválido'
 		});
+		return;
+	};
+	await Farm.findOne(
+		{
+			id_wiseconn: farmId,
+			active_cloning: true,
+			active: true
+		},
+		{_id: 1}
+	).lean()
+	.then(async (farmData: any) => {
+		if (farmData) {
+			// query for get measures
+			await Measure.find(
+				{ farm: farmData._id },
+				{
+					_id: 0,
+					id_wiseconn: 1,
+					lastData: 1,
+					lastDataDate: 1,
+					depthUnit: 1,
+					sensorDepth: 1,
+					sensorType: 1,
+					createdAt: 1,
+					soilMostureSensorType: 1,
+					monitoringTime: 1,
+					name: 1,
+					unit: 1,
+					readily_available_moisture: 1,
+					field_capacity: 1,
+					zone: 1
+				}
+			).lean()
+			.then(async (measureData: any) => {
+				if (measureData && measureData.length > 0) {
+					await Promise.all(
+						measureData.map(async (data: any) => {
+							const zoneId: any = await Zone.findOne({_id: data.zone},{id_wiseconn: 1, _id: 0})
+							.lean()
+							.catch((err: any) => {
+								// error
+								logger.error('ERROR in getting zone in getMeasuresByFarm ' + err);
+							});
+							return {
+								id: data.id_wiseconn,
+								farmId,
+								zoneId: zoneId ? zoneId.id_wiseconn : '',
+								name: data.name,
+								unit: data.unit || '',
+								lastData: data.lastData || '',
+								lastDataDate: data.lastDataDate || '',
+								monitoringTime: data.monitoringTime || '',
+								sensorDepth: data.sensorDepth || '',
+								depthUnit: data.depthUnit || '',
+								fieldCapacity: data.field_capacity || '',
+								readilyAvailableMoisture: data.readily_available_moisture || '',
+								sensorType: data.sensorType || '',
+								readType: '',
+								soilMostureSensorType: data.soilMostureSensorType || '',
+								createdAt: data.createdAt
+							};
+						})
+					).then((resp: any) => {
+						logger.info('INFO status 200 result OK in getMeasuresByFarm');
+						res.status(200).json(resp)
+					})
+					.catch((err: any) => {
+						// error
+						logger.error('ERROR in getMeasuresByFarm ' + err);
+						res.status(500).json({error: 500, message: 'Error in API getting data'});
+					});
+				} else {
+					logger.warn('WARNING status 200 result not exist measures in getMeasuresByFarm');
+					res.status(200).json([]);
+				}
+			})
+			.catch((err: any) => {
+				// error
+				logger.error('ERROR in getMeasuresByFarm ' + err);
+				res.status(500).json({error: 500, message: 'Error in API getting data'});
+			});
+		} else {
+			logger.warn('WARNING status 200 result invalid ID or not exist in getMeasuresByFarm');
+			res.status(200).json({
+				message: 'ID del Farm no existe o es inválido'
+			});
+		}
+	})
+	.catch((err: any) => {
+		// error
+		logger.error('ERROR in getMeasuresByFarm ' + err);
+		res.status(500).json({error: 500, message: 'Error in API getting data'});
+	});
 
-	} catch (err) {
-		// response error
-		next(err);
-	}
 };
