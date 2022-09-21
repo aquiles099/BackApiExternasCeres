@@ -19,7 +19,7 @@ export const getMeasureDatasByMeasure = async (
 ) => {
 	// define vars
 	const { id } = req.params;
-	const { initTime, endTime }: any = req.query;
+	let { initTime, endTime }: any = req.query;
 
 	if (!id) {
 		logger.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
@@ -33,12 +33,11 @@ export const getMeasureDatasByMeasure = async (
 			message: 'Se requiere un período de fecha de inicio y fecha fin'
 		});
 		return;
-	} else if (initTime.length != 10 || endTime.length != 10) {
-		logger.warn('WARNING status 400 result invalid format initTime & endTime in getMeasureDatasByMeasure');
-		res.status(400).json({
-			message: 'Formato inválido en fecha de inicio y fecha fin'
-		});
-		return;
+	}
+	
+	if (initTime.length == 10 && endTime.length == 10) {
+		initTime = initTime + 'T00:00:00';
+		endTime = endTime + 'T23:59:00';
 	}
 
 	// query
@@ -48,8 +47,8 @@ export const getMeasureDatasByMeasure = async (
 				{ id_wiseconn: id },
 				{
 					time: {
-						$gte: initTime + 'T00:00:00.000Z',
-						$lte: endTime + 'T23:59:00.000Z'
+						$gte: initTime + '.000Z',
+						$lte: endTime + '.000Z'
 					}
 				}
 			]

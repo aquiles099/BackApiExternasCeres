@@ -26,7 +26,7 @@ const date_valid = (init, end, i) => {
 const getMeasureDatasByMeasure = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // define vars
     const { id } = req.params;
-    const { initTime, endTime } = req.query;
+    let { initTime, endTime } = req.query;
     if (!id) {
         logger_js_1.default.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
         res.status(400).json({
@@ -41,20 +41,17 @@ const getMeasureDatasByMeasure = (req, res, next) => __awaiter(void 0, void 0, v
         });
         return;
     }
-    else if (initTime.length != 10 || endTime.length != 10) {
-        logger_js_1.default.warn('WARNING status 400 result invalid format initTime & endTime in getMeasureDatasByMeasure');
-        res.status(400).json({
-            message: 'Formato inválido en fecha de inicio y fecha fin'
-        });
-        return;
+    if (initTime.length == 10 && endTime.length == 10) {
+        initTime = initTime + 'T00:00:00';
+        endTime = endTime + 'T23:59:00';
     }
     // query
     yield models_1.MeasureData.find({ $and: [
             { id_wiseconn: id },
             {
                 time: {
-                    $gte: initTime + 'T00:00:00.000Z',
-                    $lte: endTime + 'T23:59:00.000Z'
+                    $gte: initTime + '.000Z',
+                    $lte: endTime + '.000Z'
                 }
             }
         ]
