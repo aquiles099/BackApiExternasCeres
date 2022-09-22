@@ -9,8 +9,8 @@ const prod = process.argv[0] === '/root/.nvm/versions/node/v14.15.0/bin/node';
 if (prod) {
 	API.listen(API.get('port'), () => {
 		const options = {
-			key: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/fullchain.pem', 'utf8'),
-			cert: fs.readFileSync(' /etc/letsencrypt/live/externo.devceres.cloud/privkey.pem', 'utf8'),
+			key: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/privkey.pem'),
+			cert: fs.readFileSync(' /etc/letsencrypt/live/externo.devceres.cloud/cert.pem'),
 		};
    
 		https.createServer(options, API).listen(API.get('port'), () => {
