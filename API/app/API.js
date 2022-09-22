@@ -19,6 +19,6 @@ const routes_1 = __importDefault(require("../routes"));
 // meddleware posRutes
 (0, Middleware_1.posRutes)(app);
 // Settings
-app.set('port', process.env.PORT || 82);
+app.set('port', process.env.PORT || 1001);
 exports.default = app;
 //# sourceMappingURL=API.js.map
