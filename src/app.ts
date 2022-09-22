@@ -7,18 +7,15 @@ const prod = process.argv[0] === '/root/.nvm/versions/node/v14.15.0/bin/node';
 
 
 if (prod) {
-	API.listen(API.get('port'), () => {
-		const options = {
-			key: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/privkey.pem', 'utf8'),
-			cert: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/cert.pem', 'utf8'),
-		};
-   
-		https.createServer(options, API).listen(API.get('port'), () => {
-			console.log('                                                                  ()_()');
-			console.log(`app corriendo en el puerto http://localhost:${API.get('port')}    (o.o)`);
-			console.log('                                                                  (|_|)*');
-		});
+	const options = {
+		key: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/privkey.pem', 'utf8'),
+		cert: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/cert.pem', 'utf8'),
+	};
 
+	https.createServer(options, API).listen(API.get('port'), () => {
+		console.log('                                                                  ()_()');
+		console.log(`app corriendo en el puerto http://localhost:${API.get('port')}    (o.o)`);
+		console.log('                                                                  (|_|)*');
 	});
 
 } else {
