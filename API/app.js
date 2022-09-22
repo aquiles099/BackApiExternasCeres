@@ -12,7 +12,7 @@ if (prod) {
     API_1.default.listen(API_1.default.get('port'), () => {
         const options = {
             key: fs_1.default.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/privkey.pem'),
-            cert: fs_1.default.readFileSync(' /etc/letsencrypt/live/externo.devceres.cloud/cert.pem'),
+            cert: fs_1.default.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/cert.pem'),
         };
         https_1.default.createServer(options, API_1.default).listen(API_1.default.get('port'), () => {
             console.log('                                                                  ()_()');
