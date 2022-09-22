@@ -9,20 +9,41 @@ export default async (req: Request, res: Response, next: NextFunction) => {
 	try {
 		const {keyapiaccess}: any = req.headers;
 
-		if (!keyapiaccess) throw { message: 'Acceso no permitido, ApiKey inválido', error: 401 };
+		if (!keyapiaccess) {
+			res.status(401).json({
+				message: 'Access Unauthorized'
+			});
+			return false;
+		}
 
 		const today = new Date().toISOString();
 
-		const keyValid: any = await KeyApiAccess.findOne(
+		await KeyApiAccess.findOne(
 			{
 				keyAccess: keyapiaccess,
 				dateExpire: {$gte: today}
 			}
-		);
-		if (keyValid) {
-			next();
-		} else throw { message: 'Acceso no permitido, ApiKey inválido', error: 401 };
+		).lean()
+		.then((keyValid: any) => {
+			if (keyValid) {
+				next();
+			} else {
+				res.status(401).json({
+					message: 'Access Unauthorized'
+				});
+				return false;
+			}
+		})
+		.catch((err: any) => {
+			res.status(401).json({
+				message: 'Access Unauthorized'
+			});
+			return false;
+		})
 	} catch (err) {
-		next({ message: 'Acceso no permitido, ApiKey inválido', error: 401 });
+		res.status(401).json({
+			message: 'Access Unauthorized'
+		});
+		return false;
 	}
 };

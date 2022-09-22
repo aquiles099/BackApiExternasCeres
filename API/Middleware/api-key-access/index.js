@@ -16,21 +16,40 @@ const models_1 = require("../../db/models");
 exports.default = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { keyapiaccess } = req.headers;
-        if (!keyapiaccess)
-            throw { message: 'Acceso no permitido, ApiKey inválido', error: 401 };
+        if (!keyapiaccess) {
+            res.status(401).json({
+                message: 'Access Unauthorized'
+            });
+            return false;
+        }
         const today = new Date().toISOString();
-        const keyValid = yield models_1.KeyApiAccess.findOne({
+        yield models_1.KeyApiAccess.findOne({
             keyAccess: keyapiaccess,
             dateExpire: { $gte: today }
+        }).lean()
+            .then((keyValid) => {
+            if (keyValid) {
+                next();
+            }
+            else {
+                res.status(401).json({
+                    message: 'Access Unauthorized'
+                });
+                return false;
+            }
+        })
+            .catch((err) => {
+            res.status(401).json({
+                message: 'Access Unauthorized'
+            });
+            return false;
         });
-        if (keyValid) {
-            next();
-        }
-        else
-            throw { message: 'Acceso no permitido, ApiKey inválido', error: 401 };
     }
     catch (err) {
-        next({ message: 'Acceso no permitido, ApiKey inválido', error: 401 });
+        res.status(401).json({
+            message: 'Access Unauthorized'
+        });
+        return false;
     }
 });
 //# sourceMappingURL=index.js.map
