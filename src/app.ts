@@ -11,8 +11,8 @@ if (prod) {
 	API.listen(API.get('port'), () => {
 
 		const options = {
-			key: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/fullchain.pem', 'utf8'),
-			cert: fs.readFileSync(' /etc/letsencrypt/live/externo.devceres.cloud/privkey.pem', 'utf8'),
+			cert: fs.readFileSync('/etc/letsencrypt/live/externo.devceres.cloud/fullchain.pem', 'utf8'),
+			key: fs.readFileSync(' /etc/letsencrypt/live/externo.devceres.cloud/privkey.pem', 'utf8'),
 		};
    
 		https.createServer(options, API).listen(API.get('port'), () => {
