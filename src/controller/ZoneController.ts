@@ -8,6 +8,8 @@ import { Request, Response, NextFunction } from 'express';
 
 import logger from '../logger.js';
 
+import createBackLog from '../Middleware/createBackLogs';
+
 // obtain measures for Zone by idwiseconn
 export const getMeasuresByZone = async (
 	req: Request,
@@ -17,6 +19,7 @@ export const getMeasuresByZone = async (
 	// define vars
 	const zoneId = req.params.id;
 	if (!zoneId) {
+		createBackLog('/zones/:id/measures', 400, 'WARNING status 400 result ID invalid in getMeasuresByZone', req);
 		logger.warn('WARNING status 400 result ID invalid in getMeasuresByZone');
 		res.status(400).json({
 			message: 'ID del zone es inválido'
@@ -81,12 +84,14 @@ export const getMeasuresByZone = async (
 							).lean()
 							.catch((err: any) => {
 								// error
+								createBackLog('/zones/:id/measures', 500, err, req);
 								logger.error('ERROR in getting PhysicalConnection in getMeasuresByZone ' + err);
 							});
 				
 							const farmId: any = await Farm.findOne({_id: farm},{id_wiseconn: 1, _id: 0}).lean()
 							.catch((err: any) => {
 								// error
+								createBackLog('/zones/:id/measures', 500, err, req);
 								logger.error('ERROR in getting Farm in getMeasuresByZone ' + err);
 							});
 				
@@ -113,25 +118,30 @@ export const getMeasuresByZone = async (
 				
 						})
 					).then((resp: any) => {
+						createBackLog('/zones/:id/measures', 200, 'INFO status 200 result OK in getMeasuresByZone', req);
 						logger.info('INFO status 200 result OK in getMeasuresByZone');
 						res.status(200).json(resp)
 					})
 					.catch((err: any) => {
 						// error
+						createBackLog('/zones/:id/measures', 500, err, req);
 						logger.error('ERROR in getMeasuresByZone ' + err);
 						res.status(500).json({error: 500, message: 'Error in API getting data'});
 					});
 				} else {
+					createBackLog('/zones/:id/measures', 200, 'WARNING status 200 result not exist measures in getMeasuresByZone', req);
 					logger.warn('WARNING status 200 result not exist measures in getMeasuresByZone');
 					res.status(200).json([]);
 				}
 			})
 			.catch((err: any) => {
 				// error
+				createBackLog('/zones/:id/measures', 500, err, req);
 				logger.error('ERROR in getMeasuresByZone ' + err);
 				res.status(500).json({error: 500, message: 'Error in API getting data'});
 			});
 		} else {
+			createBackLog('/zones/:id/measures', 200, 'WARNING status 200 result invalid ID or not exist in getMeasuresByZone', req);
 			logger.warn('WARNING status 200 result invalid ID or not exist in getMeasuresByZone');
 			res.status(200).json({
 				message: 'ID del Farm no existe o es inválido'
@@ -140,6 +150,7 @@ export const getMeasuresByZone = async (
 	})
 	.catch((err: any) => {
 		// error
+		createBackLog('/zones/:id/measures', 500, err, req);
 		logger.error('ERROR in getMeasuresByZone ' + err);
 		res.status(500).json({error: 500, message: 'Error in API getting data'});
 	});

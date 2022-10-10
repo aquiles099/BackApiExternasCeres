@@ -15,11 +15,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMeasuresByZone = void 0;
 const models_1 = require("../db/models");
 const logger_js_1 = __importDefault(require("../logger.js"));
+const createBackLogs_1 = __importDefault(require("../Middleware/createBackLogs"));
 // obtain measures for Zone by idwiseconn
 const getMeasuresByZone = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // define vars
     const zoneId = req.params.id;
     if (!zoneId) {
+        (0, createBackLogs_1.default)('/zones/:id/measures', 400, 'WARNING status 400 result ID invalid in getMeasuresByZone', req);
         logger_js_1.default.warn('WARNING status 400 result ID invalid in getMeasuresByZone');
         res.status(400).json({
             message: 'ID del zone es inválido'
@@ -61,11 +63,13 @@ const getMeasuresByZone = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                         }).lean()
                             .catch((err) => {
                             // error
+                            (0, createBackLogs_1.default)('/zones/:id/measures', 500, err, req);
                             logger_js_1.default.error('ERROR in getting PhysicalConnection in getMeasuresByZone ' + err);
                         });
                         const farmId = yield models_1.Farm.findOne({ _id: farm }, { id_wiseconn: 1, _id: 0 }).lean()
                             .catch((err) => {
                             // error
+                            (0, createBackLogs_1.default)('/zones/:id/measures', 500, err, req);
                             logger_js_1.default.error('ERROR in getting Farm in getMeasuresByZone ' + err);
                         });
                         return {
@@ -89,27 +93,32 @@ const getMeasuresByZone = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                             physicalConnection: physical_connection
                         };
                     }))).then((resp) => {
+                        (0, createBackLogs_1.default)('/zones/:id/measures', 200, 'INFO status 200 result OK in getMeasuresByZone', req);
                         logger_js_1.default.info('INFO status 200 result OK in getMeasuresByZone');
                         res.status(200).json(resp);
                     })
                         .catch((err) => {
                         // error
+                        (0, createBackLogs_1.default)('/zones/:id/measures', 500, err, req);
                         logger_js_1.default.error('ERROR in getMeasuresByZone ' + err);
                         res.status(500).json({ error: 500, message: 'Error in API getting data' });
                     });
                 }
                 else {
+                    (0, createBackLogs_1.default)('/zones/:id/measures', 200, 'WARNING status 200 result not exist measures in getMeasuresByZone', req);
                     logger_js_1.default.warn('WARNING status 200 result not exist measures in getMeasuresByZone');
                     res.status(200).json([]);
                 }
             }))
                 .catch((err) => {
                 // error
+                (0, createBackLogs_1.default)('/zones/:id/measures', 500, err, req);
                 logger_js_1.default.error('ERROR in getMeasuresByZone ' + err);
                 res.status(500).json({ error: 500, message: 'Error in API getting data' });
             });
         }
         else {
+            (0, createBackLogs_1.default)('/zones/:id/measures', 200, 'WARNING status 200 result invalid ID or not exist in getMeasuresByZone', req);
             logger_js_1.default.warn('WARNING status 200 result invalid ID or not exist in getMeasuresByZone');
             res.status(200).json({
                 message: 'ID del Farm no existe o es inválido'
@@ -118,6 +127,7 @@ const getMeasuresByZone = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }))
         .catch((err) => {
         // error
+        (0, createBackLogs_1.default)('/zones/:id/measures', 500, err, req);
         logger_js_1.default.error('ERROR in getMeasuresByZone ' + err);
         res.status(500).json({ error: 500, message: 'Error in API getting data' });
     });

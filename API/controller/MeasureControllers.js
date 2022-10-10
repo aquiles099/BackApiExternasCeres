@@ -16,6 +16,7 @@ exports.getMeasureDatasByMeasure = void 0;
 const moment_1 = __importDefault(require("moment"));
 const models_1 = require("../db/models");
 const logger_js_1 = __importDefault(require("../logger.js"));
+const createBackLogs_1 = __importDefault(require("../Middleware/createBackLogs"));
 // cron for
 const date_valid = (init, end, i) => {
     const day = (0, moment_1.default)(init).add(i, 'day').format();
@@ -28,6 +29,7 @@ const getMeasureDatasByMeasure = (req, res, next) => __awaiter(void 0, void 0, v
     const { id } = req.params;
     let { initTime, endTime } = req.query;
     if (!id) {
+        (0, createBackLogs_1.default)('/measures/:id/data', 400, 'WARNING status 400 result ID invalid in getMeasureDatasByMeasure', req);
         logger_js_1.default.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
         res.status(400).json({
             message: 'El id es requerido o es inválido'
@@ -35,6 +37,7 @@ const getMeasureDatasByMeasure = (req, res, next) => __awaiter(void 0, void 0, v
         return;
     }
     else if (!initTime || !endTime) {
+        (0, createBackLogs_1.default)('/measures/:id/data', 400, 'WARNING status 400 result ID invalid in getMeasureDatasByMeasure', req);
         logger_js_1.default.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
         res.status(400).json({
             message: 'Se requiere un período de fecha de inicio y fecha fin'
@@ -62,16 +65,19 @@ const getMeasureDatasByMeasure = (req, res, next) => __awaiter(void 0, void 0, v
     }).lean()
         .then((dataMeasure) => __awaiter(void 0, void 0, void 0, function* () {
         if (dataMeasure && dataMeasure.length > 0) {
+            (0, createBackLogs_1.default)('/measures/:id/data', 200, 'INFO status 200 result OK in getMeasureDatasByMeasure', req);
             logger_js_1.default.info('INFO status 200 result OK in getMeasureDatasByMeasure');
             res.status(200).json(dataMeasure);
         }
         else {
+            (0, createBackLogs_1.default)('/measures/:id/data', 200, 'WARNING status 200 result no data in getMeasureDatasByMeasure', req);
             logger_js_1.default.warn('WARNING status 200 result no data in getMeasureDatasByMeasure');
             res.status(200).json([]);
         }
     }))
         .catch((err) => {
         // error
+        (0, createBackLogs_1.default)('/measures/:id/data', 500, err, req);
         logger_js_1.default.error('ERROR in getMeasureDatasByMeasure ' + err);
         res.status(500).json({ error: 500, message: 'Error in API getting data' });
     });

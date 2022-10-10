@@ -3,6 +3,8 @@ import moment from 'moment';
 import { MeasureData } from '../db/models';
 import logger from '../logger.js';
 
+import createBackLog from '../Middleware/createBackLogs';
+
 // cron for
 const date_valid = (init: string, end: string, i: number) => {
 	const day: string = moment(init).add(i, 'day').format();
@@ -22,12 +24,14 @@ export const getMeasureDatasByMeasure = async (
 	let { initTime, endTime }: any = req.query;
 
 	if (!id) {
+		createBackLog('/measures/:id/data', 400, 'WARNING status 400 result ID invalid in getMeasureDatasByMeasure', req);
 		logger.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
 		res.status(400).json({
 			message: 'El id es requerido o es inválido'
 		});
 		return;
 	} else if (!initTime || !endTime) {
+		createBackLog('/measures/:id/data', 400, 'WARNING status 400 result ID invalid in getMeasureDatasByMeasure', req);
 		logger.warn('WARNING status 400 result ID invalid in getMeasureDatasByMeasure');
 		res.status(400).json({
 			message: 'Se requiere un período de fecha de inicio y fecha fin'
@@ -61,9 +65,11 @@ export const getMeasureDatasByMeasure = async (
 	).lean()
 	.then(async (dataMeasure: any) => {
 		if (dataMeasure && dataMeasure.length > 0) {
+			createBackLog('/measures/:id/data', 200, 'INFO status 200 result OK in getMeasureDatasByMeasure', req);
 			logger.info('INFO status 200 result OK in getMeasureDatasByMeasure');
 			res.status(200).json(dataMeasure);
 		} else {
+			createBackLog('/measures/:id/data', 200, 'WARNING status 200 result no data in getMeasureDatasByMeasure', req);
 			logger.warn('WARNING status 200 result no data in getMeasureDatasByMeasure');
 			res.status(200).json([]);
 		}
@@ -71,6 +77,7 @@ export const getMeasureDatasByMeasure = async (
 	})
 	.catch((err: any) => {
 		// error
+		createBackLog('/measures/:id/data', 500, err, req);
 		logger.error('ERROR in getMeasureDatasByMeasure ' + err);
 		res.status(500).json({error: 500, message: 'Error in API getting data'});
 	});

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.KeyApiAccess = exports.StatesZonesFarms = exports.CloneProcess = exports.PromMinMax = exports.EstanqueIrrimax = exports.AccountSettings = exports.RealIrrigations = exports.Rol = exports.User = exports.GraphZone = exports.GraphMaster = exports.VarDerivateSector = exports.VarDerivateMaster = exports.PhysicalConnection = exports.Node = exports.Accounts = exports.Evento = exports.Zone = exports.MeasureData = exports.Measure = exports.Farm = void 0;
+exports.BackLogExternos = exports.KeyApiAccess = exports.StatesZonesFarms = exports.CloneProcess = exports.PromMinMax = exports.EstanqueIrrimax = exports.AccountSettings = exports.RealIrrigations = exports.Rol = exports.User = exports.GraphZone = exports.GraphMaster = exports.VarDerivateSector = exports.VarDerivateMaster = exports.PhysicalConnection = exports.Node = exports.Accounts = exports.Evento = exports.Zone = exports.MeasureData = exports.Measure = exports.Farm = void 0;
 const mongoose_1 = require("mongoose");
 // colections
 const farm_1 = __importDefault(require("./farm"));
@@ -27,6 +27,7 @@ const accountSettings_1 = __importDefault(require("./accountSettings"));
 const cloneprocess_1 = __importDefault(require("./cloneprocess"));
 const stateszonesfarms_1 = __importDefault(require("./stateszonesfarms"));
 const keyapiaccess_1 = __importDefault(require("./keyapiaccess"));
+const backlogsexternos_1 = __importDefault(require("./backlogsexternos"));
 /** init models */
 exports.Farm = (0, mongoose_1.model)('Farm', farm_1.default);
 //
@@ -69,4 +70,6 @@ exports.CloneProcess = (0, mongoose_1.model)('CloneProcess', cloneprocess_1.defa
 exports.StatesZonesFarms = (0, mongoose_1.model)('StatesZonesFarms', stateszonesfarms_1.default);
 //
 exports.KeyApiAccess = (0, mongoose_1.model)('KeyApiAccess', keyapiaccess_1.default);
+//
+exports.BackLogExternos = (0, mongoose_1.model)('BackLogExternos', backlogsexternos_1.default);
 //# sourceMappingURL=index.js.map

@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const code_1 = __importDefault(require("./code"));
 const index_1 = __importDefault(require("../../test/logs/index"));
+const createBackLogs_1 = __importDefault(require("../../Middleware/createBackLogs"));
 /**
  * este middleware se dedica a cashar y formatear los errores
  * @param err
@@ -29,6 +30,7 @@ const Error = (err, req, res, next) => {
         console.log(obj);
     if (err.logger)
         index_1.default.log(obj);
+    (0, createBackLogs_1.default)(req.originalUrl, code, message, req);
     // response
     res.status(code).json(obj);
 };

@@ -22,6 +22,7 @@ import accountSettings from './accountSettings';
 import cloneprocess from './cloneprocess';
 import stateszonesfarms from './stateszonesfarms';
 import keyapiaccess from './keyapiaccess';
+import backlogsexternos from './backlogsexternos';
 
 /** init models */
 export const Farm = model('Farm', farm);
@@ -65,3 +66,5 @@ export const CloneProcess = model('CloneProcess', cloneprocess);
 export const StatesZonesFarms = model('StatesZonesFarms', stateszonesfarms);
 //
 export const KeyApiAccess = model('KeyApiAccess', keyapiaccess);
+//
+export const BackLogExternos = model('BackLogExternos', backlogsexternos);

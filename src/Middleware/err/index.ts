@@ -3,6 +3,8 @@ import descript from './code';
 import { Request, Response, NextFunction } from 'express';
 import logger from '../../test/logs/index';
 
+import createBackLog from '../../Middleware/createBackLogs';
+
 interface objError {
 	status: boolean | string;
 	message: string;
@@ -36,6 +38,7 @@ const Error = (err: any, req: Request, res: Response, next: NextFunction) => {
 
 	if (err.logger) logger.log(obj);
 
+	createBackLog(req.originalUrl, code, message, req);
 	// response
 	res.status(code).json(obj);
 };

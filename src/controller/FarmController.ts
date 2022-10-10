@@ -7,6 +7,8 @@ import { Request, Response, NextFunction } from 'express';
 
 import logger from '../logger.js';
 
+import createBackLog from '../Middleware/createBackLogs';
+
 const options = {
 	_id: 0,
 	id_wiseconn: 1,
@@ -90,23 +92,31 @@ export const getFarms = async (req: Request, res: Response, next: NextFunction):
 					}
 				})
 			)
-			.then((resp: any) => {
+			.then(async (resp: any) => {
+				createBackLog('/farms', 200, 'INFO status 200 result OK in getFarms', req);
 				logger.info('INFO status 200 result OK in getFarms');
 				res.status(200).json(resp);
 			})
-			.catch((err: any) => {
+			.catch(async (err: any) => {
 				// error
-				logger.error('ERROR in getFarms ' + err);
+				createBackLog('/farms', 500, err, req);
+
+				logger.error('ERROR in farmData' + err);
 				res.status(500).json({error: 500, message: 'Error in API getting data'});
 			});
 		} else {
+			createBackLog('/farms', 200, 'WARNING status 200 result no data in getFarms', req);
+
 			logger.warn('WARNING status 200 result no data in getFarms');
 			res.status(200).json([]);
 		}
 
 	})
-	.catch((err: any) => {
+	.catch(async (err: any) => {
 		// error
+
+		createBackLog('/farms', 500, err, req);
+
 		logger.error('ERROR in getFarms ' + err);
 		res.status(500).json({error: 500, message: 'Error in API getting data'});
 	});
@@ -118,6 +128,8 @@ export const getFarmById = async (req: Request, res: Response, next: NextFunctio
 	const id_wiseconn = req.params.id;
 
 	if (!id_wiseconn) {
+		createBackLog('/farms/:id', 400, 'WARNING status 400 result ID invalid in getFarmById', req);
+
 		logger.warn('WARNING status 400 result ID invalid in getFarmById');
 		res.status(400).json({
 			message: 'ID del Farm es inválido'
@@ -136,6 +148,7 @@ export const getFarmById = async (req: Request, res: Response, next: NextFunctio
 	).lean()
 	.then(async (farmData: any) => {
 		if (farmData) {
+			createBackLog('/farms/:id', 200, 'INFO status 200 result OK in getFarmById', req);
 			logger.info('INFO status 200 result OK in getFarmById');
 			res.status(200).json({
 				id: farmData.id_wiseconn,
@@ -151,6 +164,7 @@ export const getFarmById = async (req: Request, res: Response, next: NextFunctio
 				metadata: farmData.metadata
 			});
 		} else {
+			createBackLog('/farms/:id', 200, 'WARNING status 200 result no data in getFarmById', req);
 			logger.warn('WARNING status 200 result no data in getFarmById');
 			res.status(200).json({
 				message: 'ID del Farm no existe o es inválido'
@@ -160,6 +174,7 @@ export const getFarmById = async (req: Request, res: Response, next: NextFunctio
 	})
 	.catch((err: any) => {
 		// error
+		createBackLog('/farms/:id', 500, err, req);
 		logger.error('ERROR in getFarmById ' + err);
 		res.status(500).json({error: 500, message: 'Error in API getting data'});
 	});
@@ -171,6 +186,7 @@ export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFu
 	// define vars
 	const farmId = req.params.id;
 	if (!farmId) {
+		createBackLog('/farms/:id/zones', 400, 'WARNING status 400 result ID invalid in getZonesByIdFarm', req);
 		logger.warn('WARNING status 400 result ID invalid in getZonesByIdFarm');
 		res.status(400).json({
 			message: 'ID del Farm es inválido'
@@ -226,25 +242,30 @@ export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFu
 							}
 						})
 					).then((resp: any) => {
+						createBackLog('/farms/:id/zones', 200, 'INFO status 200 result OK in getZonesByIdFarm', req);
 						logger.info('INFO status 200 result OK in getZonesByIdFarm');
 						res.status(200).json(resp)
 					})
 					.catch((err: any) => {
 						// error
+						createBackLog('/farms/:id/zones', 500, err, req);
 						logger.error('ERROR in getZonesByIdFarm ' + err);
 						res.status(500).json({error: 500, message: 'Error in API getting data'});
 					});
 				} else {
+					createBackLog('/farms/:id/zones', 200, 'WARNING status 200 result not exist zones in getZonesByIdFarm', req);
 					logger.warn('WARNING status 200 result not exist zones in getZonesByIdFarm');
 					res.status(200).json([]);
 				}
 			})
 			.catch((err: any) => {
 				// error
+				createBackLog('/farms/:id/zones', 500, err, req);
 				logger.error('ERROR in getZonesByIdFarm ' + err);
 				res.status(500).json({error: 500, message: 'Error in API getting data'});
 			});
 		} else {
+			createBackLog('/farms/:id/zones', 200, 'WARNING status 200 result invalid ID or not exist in getZonesByIdFarm', req);
 			logger.warn('WARNING status 200 result invalid ID or not exist in getZonesByIdFarm');
 			res.status(200).json({
 				message: 'ID del Farm no existe o es inválido'
@@ -253,6 +274,7 @@ export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFu
 	})
 	.catch((err: any) => {
 		// error
+		createBackLog('/farms/:id/zones', 500, err, req);
 		logger.error('ERROR in getZonesByIdFarm ' + err);
 		res.status(500).json({error: 500, message: 'Error in API getting data'});
 	});
@@ -264,6 +286,7 @@ export const getMeasuresByFarm = async (req: Request, res: Response, next: NextF
 	// define vars
 	const farmId = req.params.id;
 	if (!farmId) {
+		createBackLog('/farms/:id/measures', 400, 'WARNING status 400 result ID invalid in getMeasuresByFarm', req);
 		logger.warn('WARNING status 400 result ID invalid in getMeasuresByFarm');
 		res.status(400).json({
 			message: 'ID del Farm es inválido'
@@ -309,6 +332,7 @@ export const getMeasuresByFarm = async (req: Request, res: Response, next: NextF
 							.lean()
 							.catch((err: any) => {
 								// error
+								createBackLog('/farms/:id/measures', 500, err, req);
 								logger.error('ERROR in getting zone in getMeasuresByFarm ' + err);
 							});
 							return {
@@ -331,25 +355,30 @@ export const getMeasuresByFarm = async (req: Request, res: Response, next: NextF
 							};
 						})
 					).then((resp: any) => {
+						createBackLog('/farms/:id/measures', 200, 'INFO status 200 result OK in getMeasuresByFarm', req);
 						logger.info('INFO status 200 result OK in getMeasuresByFarm');
 						res.status(200).json(resp)
 					})
 					.catch((err: any) => {
 						// error
+						createBackLog('/farms/:id/measures', 500, err, req);
 						logger.error('ERROR in getMeasuresByFarm ' + err);
 						res.status(500).json({error: 500, message: 'Error in API getting data'});
 					});
 				} else {
+					createBackLog('/farms/:id/measures', 200, 'WARNING status 200 result not exist measures in getMeasuresByFarm', req);
 					logger.warn('WARNING status 200 result not exist measures in getMeasuresByFarm');
 					res.status(200).json([]);
 				}
 			})
 			.catch((err: any) => {
 				// error
+				createBackLog('/farms/:id/measures', 500, err, req);
 				logger.error('ERROR in getMeasuresByFarm ' + err);
 				res.status(500).json({error: 500, message: 'Error in API getting data'});
 			});
 		} else {
+			createBackLog('/farms/:id/measures', 200, 'WARNING status 200 result invalid ID or not exist in getMeasuresByFarm', req);
 			logger.warn('WARNING status 200 result invalid ID or not exist in getMeasuresByFarm');
 			res.status(200).json({
 				message: 'ID del Farm no existe o es inválido'
@@ -358,6 +387,7 @@ export const getMeasuresByFarm = async (req: Request, res: Response, next: NextF
 	})
 	.catch((err: any) => {
 		// error
+		createBackLog('/farms/:id/measures', 500, err, req);
 		logger.error('ERROR in getMeasuresByFarm ' + err);
 		res.status(500).json({error: 500, message: 'Error in API getting data'});
 	});

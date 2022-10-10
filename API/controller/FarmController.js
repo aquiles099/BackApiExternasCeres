@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getMeasuresByFarm = exports.getZonesByIdFarm = exports.getFarmById = exports.getFarms = void 0;
 const models_1 = require("../db/models");
 const logger_js_1 = __importDefault(require("../logger.js"));
+const createBackLogs_1 = __importDefault(require("../Middleware/createBackLogs"));
 const options = {
     _id: 0,
     id_wiseconn: 1,
@@ -91,26 +92,30 @@ const getFarms = (req, res, next) => __awaiter(void 0, void 0, void 0, function*
                     metadata: data.metadata
                 };
             }))
-                .then((resp) => {
+                .then((resp) => __awaiter(void 0, void 0, void 0, function* () {
+                (0, createBackLogs_1.default)('/farms', 200, 'INFO status 200 result OK in getFarms', req);
                 logger_js_1.default.info('INFO status 200 result OK in getFarms');
                 res.status(200).json(resp);
-            })
-                .catch((err) => {
+            }))
+                .catch((err) => __awaiter(void 0, void 0, void 0, function* () {
                 // error
-                logger_js_1.default.error('ERROR in getFarms ' + err);
+                (0, createBackLogs_1.default)('/farms', 500, err, req);
+                logger_js_1.default.error('ERROR in farmData' + err);
                 res.status(500).json({ error: 500, message: 'Error in API getting data' });
-            });
+            }));
         }
         else {
+            (0, createBackLogs_1.default)('/farms', 200, 'WARNING status 200 result no data in getFarms', req);
             logger_js_1.default.warn('WARNING status 200 result no data in getFarms');
             res.status(200).json([]);
         }
     }))
-        .catch((err) => {
+        .catch((err) => __awaiter(void 0, void 0, void 0, function* () {
         // error
+        (0, createBackLogs_1.default)('/farms', 500, err, req);
         logger_js_1.default.error('ERROR in getFarms ' + err);
         res.status(500).json({ error: 500, message: 'Error in API getting data' });
-    });
+    }));
 });
 exports.getFarms = getFarms;
 // getting farm by idwiseconn
@@ -118,6 +123,7 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     // define vars
     const id_wiseconn = req.params.id;
     if (!id_wiseconn) {
+        (0, createBackLogs_1.default)('/farms/:id', 400, 'WARNING status 400 result ID invalid in getFarmById', req);
         logger_js_1.default.warn('WARNING status 400 result ID invalid in getFarmById');
         res.status(400).json({
             message: 'ID del Farm es inválido'
@@ -133,6 +139,7 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }, options).lean()
         .then((farmData) => __awaiter(void 0, void 0, void 0, function* () {
         if (farmData) {
+            (0, createBackLogs_1.default)('/farms/:id', 200, 'INFO status 200 result OK in getFarmById', req);
             logger_js_1.default.info('INFO status 200 result OK in getFarmById');
             res.status(200).json({
                 id: farmData.id_wiseconn,
@@ -149,6 +156,7 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
             });
         }
         else {
+            (0, createBackLogs_1.default)('/farms/:id', 200, 'WARNING status 200 result no data in getFarmById', req);
             logger_js_1.default.warn('WARNING status 200 result no data in getFarmById');
             res.status(200).json({
                 message: 'ID del Farm no existe o es inválido'
@@ -157,6 +165,7 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     }))
         .catch((err) => {
         // error
+        (0, createBackLogs_1.default)('/farms/:id', 500, err, req);
         logger_js_1.default.error('ERROR in getFarmById ' + err);
         res.status(500).json({ error: 500, message: 'Error in API getting data' });
     });
@@ -167,6 +176,7 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     // define vars
     const farmId = req.params.id;
     if (!farmId) {
+        (0, createBackLogs_1.default)('/farms/:id/zones', 400, 'WARNING status 400 result ID invalid in getZonesByIdFarm', req);
         logger_js_1.default.warn('WARNING status 400 result ID invalid in getZonesByIdFarm');
         res.status(400).json({
             message: 'ID del Farm es inválido'
@@ -215,27 +225,32 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
                             polygon: data.polygon
                         };
                     })).then((resp) => {
+                        (0, createBackLogs_1.default)('/farms/:id/zones', 200, 'INFO status 200 result OK in getZonesByIdFarm', req);
                         logger_js_1.default.info('INFO status 200 result OK in getZonesByIdFarm');
                         res.status(200).json(resp);
                     })
                         .catch((err) => {
                         // error
+                        (0, createBackLogs_1.default)('/farms/:id/zones', 500, err, req);
                         logger_js_1.default.error('ERROR in getZonesByIdFarm ' + err);
                         res.status(500).json({ error: 500, message: 'Error in API getting data' });
                     });
                 }
                 else {
+                    (0, createBackLogs_1.default)('/farms/:id/zones', 200, 'WARNING status 200 result not exist zones in getZonesByIdFarm', req);
                     logger_js_1.default.warn('WARNING status 200 result not exist zones in getZonesByIdFarm');
                     res.status(200).json([]);
                 }
             }))
                 .catch((err) => {
                 // error
+                (0, createBackLogs_1.default)('/farms/:id/zones', 500, err, req);
                 logger_js_1.default.error('ERROR in getZonesByIdFarm ' + err);
                 res.status(500).json({ error: 500, message: 'Error in API getting data' });
             });
         }
         else {
+            (0, createBackLogs_1.default)('/farms/:id/zones', 200, 'WARNING status 200 result invalid ID or not exist in getZonesByIdFarm', req);
             logger_js_1.default.warn('WARNING status 200 result invalid ID or not exist in getZonesByIdFarm');
             res.status(200).json({
                 message: 'ID del Farm no existe o es inválido'
@@ -244,6 +259,7 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     }))
         .catch((err) => {
         // error
+        (0, createBackLogs_1.default)('/farms/:id/zones', 500, err, req);
         logger_js_1.default.error('ERROR in getZonesByIdFarm ' + err);
         res.status(500).json({ error: 500, message: 'Error in API getting data' });
     });
@@ -254,6 +270,7 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     // define vars
     const farmId = req.params.id;
     if (!farmId) {
+        (0, createBackLogs_1.default)('/farms/:id/measures', 400, 'WARNING status 400 result ID invalid in getMeasuresByFarm', req);
         logger_js_1.default.warn('WARNING status 400 result ID invalid in getMeasuresByFarm');
         res.status(400).json({
             message: 'ID del Farm es inválido'
@@ -293,6 +310,7 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                             .lean()
                             .catch((err) => {
                             // error
+                            (0, createBackLogs_1.default)('/farms/:id/measures', 500, err, req);
                             logger_js_1.default.error('ERROR in getting zone in getMeasuresByFarm ' + err);
                         });
                         return {
@@ -314,27 +332,32 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
                             createdAt: data.createdAt
                         };
                     }))).then((resp) => {
+                        (0, createBackLogs_1.default)('/farms/:id/measures', 200, 'INFO status 200 result OK in getMeasuresByFarm', req);
                         logger_js_1.default.info('INFO status 200 result OK in getMeasuresByFarm');
                         res.status(200).json(resp);
                     })
                         .catch((err) => {
                         // error
+                        (0, createBackLogs_1.default)('/farms/:id/measures', 500, err, req);
                         logger_js_1.default.error('ERROR in getMeasuresByFarm ' + err);
                         res.status(500).json({ error: 500, message: 'Error in API getting data' });
                     });
                 }
                 else {
+                    (0, createBackLogs_1.default)('/farms/:id/measures', 200, 'WARNING status 200 result not exist measures in getMeasuresByFarm', req);
                     logger_js_1.default.warn('WARNING status 200 result not exist measures in getMeasuresByFarm');
                     res.status(200).json([]);
                 }
             }))
                 .catch((err) => {
                 // error
+                (0, createBackLogs_1.default)('/farms/:id/measures', 500, err, req);
                 logger_js_1.default.error('ERROR in getMeasuresByFarm ' + err);
                 res.status(500).json({ error: 500, message: 'Error in API getting data' });
             });
         }
         else {
+            (0, createBackLogs_1.default)('/farms/:id/measures', 200, 'WARNING status 200 result invalid ID or not exist in getMeasuresByFarm', req);
             logger_js_1.default.warn('WARNING status 200 result invalid ID or not exist in getMeasuresByFarm');
             res.status(200).json({
                 message: 'ID del Farm no existe o es inválido'
@@ -343,6 +366,7 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     }))
         .catch((err) => {
         // error
+        (0, createBackLogs_1.default)('/farms/:id/measures', 500, err, req);
         logger_js_1.default.error('ERROR in getMeasuresByFarm ' + err);
         res.status(500).json({ error: 500, message: 'Error in API getting data' });
     });
