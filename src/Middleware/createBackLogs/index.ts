@@ -15,8 +15,8 @@ const backLog = {
 
 export default async (api: any, code: any, message: any, req: Request) => {
 
-    const today: string = moment().tz('America/Santiago').format('YYYY-MM-DDTHH:mm:ss').toString();
-
+    const today: string = moment().format('YYYY-MM-DDTHH:mm:ss').toString();
+    console.log(today);
     backLog.api = api;
     backLog.logDate = today;
     backLog.statusCode = code.toString();
