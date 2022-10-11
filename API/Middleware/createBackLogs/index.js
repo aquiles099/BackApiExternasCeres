@@ -23,10 +23,11 @@ const backLog = {
     statusCode: ''
 };
 exports.default = (api, code, message, req) => __awaiter(void 0, void 0, void 0, function* () {
-    const today = (0, moment_1.default)().format('YYYY-MM-DDTHH:mm:ss').toString();
-    console.log(today);
+    const now = (0, moment_1.default)().format('YYYY-MM-DDTHH:mm:ss');
+    const offset = (0, moment_1.default)().utc().format('YYYY-MM-DDTHH:mm:ss');
+    const dateLog = (0, moment_1.default)().subtract((0, moment_1.default)(offset).diff(now, 'hours'), 'h').format('YYYY-MM-DDTHH:mm:ss');
     backLog.api = api;
-    backLog.logDate = today;
+    backLog.logDate = dateLog.toString();
     backLog.statusCode = code.toString();
     backLog.response = code == 500 ? message : { code, message };
     backLog.request = {
