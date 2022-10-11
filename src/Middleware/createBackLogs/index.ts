@@ -15,10 +15,10 @@ const backLog = {
 
 export default async (api: any, code: any, message: any, req: Request) => {
 
-    const today: string = moment().tz('America/Santiago').format('YYYY-MM-DDTHH:mm:ss');
+    const today: string = moment().tz('America/Santiago').format('YYYY-MM-DDTHH:mm:ss').toString();
 
     backLog.api = api;
-    backLog.logDate = new Date(today).toISOString();
+    backLog.logDate = today;
     backLog.statusCode = code.toString();
     backLog.response = code == 500 ? message : {code, message};
     backLog.request = {
