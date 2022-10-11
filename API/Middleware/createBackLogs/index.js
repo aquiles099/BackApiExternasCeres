@@ -23,9 +23,9 @@ const backLog = {
     statusCode: ''
 };
 exports.default = (api, code, message, req) => __awaiter(void 0, void 0, void 0, function* () {
-    const today = (0, moment_1.default)().tz('America/Santiago').format('YYYY-MM-DDTHH:mm:ss');
+    const today = (0, moment_1.default)().tz('America/Santiago').format('YYYY-MM-DDTHH:mm:ss').toString();
     backLog.api = api;
-    backLog.logDate = new Date(today).toISOString();
+    backLog.logDate = today;
     backLog.statusCode = code.toString();
     backLog.response = code == 500 ? message : { code, message };
     backLog.request = {
