@@ -68,7 +68,6 @@ export const getFarms = async (req: Request, res: Response, next: NextFunction):
 	// query
 	await Farm.find(
 		{
-			active_cloning: true,
 			active: true
 		},
 		options
@@ -140,7 +139,6 @@ export const getFarmById = async (req: Request, res: Response, next: NextFunctio
 	await Farm.findOne(
 		{
 			id_wiseconn,
-			active_cloning: true,
 			active: true
 		},
 		options
@@ -196,7 +194,6 @@ export const getZonesByIdFarm = async (req: Request, res: Response, next: NextFu
 	await Farm.findOne(
 		{
 			id_wiseconn: farmId,
-			active_cloning: true,
 			active: true
 		},
 		{_id: 1}
@@ -296,7 +293,6 @@ export const getMeasuresByFarm = async (req: Request, res: Response, next: NextF
 	await Farm.findOne(
 		{
 			id_wiseconn: farmId,
-			active_cloning: true,
 			active: true
 		},
 		{_id: 1}

@@ -72,7 +72,6 @@ const optionsZone = {
 const getFarms = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     // query
     yield models_1.Farm.find({
-        active_cloning: true,
         active: true
     }, options).lean()
         .then((farmData) => __awaiter(void 0, void 0, void 0, function* () {
@@ -134,7 +133,6 @@ const getFarmById = (req, res, next) => __awaiter(void 0, void 0, void 0, functi
     // query
     yield models_1.Farm.findOne({
         id_wiseconn,
-        active_cloning: true,
         active: true
     }, options).lean()
         .then((farmData) => __awaiter(void 0, void 0, void 0, function* () {
@@ -186,7 +184,6 @@ const getZonesByIdFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, f
     ;
     yield models_1.Farm.findOne({
         id_wiseconn: farmId,
-        active_cloning: true,
         active: true
     }, { _id: 1 }).lean()
         .then((farmData) => __awaiter(void 0, void 0, void 0, function* () {
@@ -280,7 +277,6 @@ const getMeasuresByFarm = (req, res, next) => __awaiter(void 0, void 0, void 0, 
     ;
     yield models_1.Farm.findOne({
         id_wiseconn: farmId,
-        active_cloning: true,
         active: true
     }, { _id: 1 }).lean()
         .then((farmData) => __awaiter(void 0, void 0, void 0, function* () {
